@@ -42,69 +42,6 @@ html, body {
   top: 100%;
   left: 0; }
 
-.cd-grouped-bar-chart .panel {
-  background: #f4f4f4;
-  margin-bottom: 0px;
-  height: 60px;
-  margin: 5px 40px; }
-
-.cd-grouped-bar-chart .header-text {
-  color: blue;
-  font-weight: bold; }
-
-.cd-grouped-bar-chart .no-data {
-  padding-top: 32px; }
-
-.cd-grouped-bar-chart .group-item {
-  padding-top: 10px;
-  font-size: 16px; }
-
-.cd-grouped-bar-chart .line-color {
-  height: 8px;
-  padding-right: 10px;
-  padding-left: 10px; }
-
-.cd-grouped-bar-chart .red-line {
-  height: 8px;
-  background: red; }
-
-.cd-grouped-bar-chart .data-container {
-  max-height: 348px;
-  overflow-y: auto;
-  overflow-x: hidden; }
-
-.cd-grouped-bar-chart .header {
-  font-size: 14px;
-  padding-left: 4px;
-  margin-top: -6px; }
-
-.cd-grouped-bar-chart .date-team {
-  padding-right: 4px;
-  margin-top: -6px; }
-
-.cd-grouped-bar-chart .bold-text {
-  font-weight: bold; }
-
-.cd-grouped-bar-chart .date {
-  font-size: 12px;
-  -ms-flex-item-align: end;
-      align-self: flex-end; }
-
-.cd-grouped-bar-chart .team {
-  font-size: 10px;
-  margin-top: -2px;
-  -ms-flex-item-align: end;
-      align-self: flex-end; }
-
-.cd-grouped-bar-chart .data-row {
-  font-size: 10px;
-  margin-top: 4px;
-  padding-right: 4px;
-  padding-left: 4px; }
-
-.cd-grouped-bar-chart .total {
-  margin-top: 10px; }
-
 cd-calendar .calbtn.md-button {
   border-radius: 50%;
   height: 36px;
@@ -170,3 +107,66 @@ cd-calendar .arrowmargin {
 
 cd-calendar .yearrow {
   background: lightgray; }
+
+.cd-grouped-bar-chart .panel {
+  background: #f4f4f4;
+  margin-bottom: 0px;
+  height: 60px;
+  margin: 5px 40px; }
+
+.cd-grouped-bar-chart .header-text {
+  color: blue;
+  font-weight: bold; }
+
+.cd-grouped-bar-chart .no-data {
+  padding-top: 32px; }
+
+.cd-grouped-bar-chart .group-item {
+  padding-top: 10px;
+  font-size: 16px; }
+
+.cd-grouped-bar-chart .line-color {
+  height: 8px;
+  padding-right: 10px;
+  padding-left: 10px; }
+
+.cd-grouped-bar-chart .red-line {
+  height: 8px;
+  background: red; }
+
+.cd-grouped-bar-chart .data-container {
+  max-height: 348px;
+  overflow-y: auto;
+  overflow-x: hidden; }
+
+.cd-grouped-bar-chart .header {
+  font-size: 14px;
+  padding-left: 4px;
+  margin-top: -6px; }
+
+.cd-grouped-bar-chart .date-team {
+  padding-right: 4px;
+  margin-top: -6px; }
+
+.cd-grouped-bar-chart .bold-text {
+  font-weight: bold; }
+
+.cd-grouped-bar-chart .date {
+  font-size: 12px;
+  -ms-flex-item-align: end;
+      align-self: flex-end; }
+
+.cd-grouped-bar-chart .team {
+  font-size: 10px;
+  margin-top: -2px;
+  -ms-flex-item-align: end;
+      align-self: flex-end; }
+
+.cd-grouped-bar-chart .data-row {
+  font-size: 10px;
+  margin-top: 4px;
+  padding-right: 4px;
+  padding-left: 4px; }
+
+.cd-grouped-bar-chart .total {
+  margin-top: 10px; }
