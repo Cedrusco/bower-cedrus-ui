@@ -3,8 +3,8 @@
   "version": "0.2.1",
   "description": "Cedrus UI graphical components library in Angular.js",
   "main": [
-    "css/cedrus-ui.min.css",
-    "js/cedrus-ui.min.js"
+    "css/cedrus-ui.css",
+    "js/cedrus-ui.js"
   ],
   "registry": "github",
   "author": "Mohamed Maher <moh.maher@gmail.com>",
