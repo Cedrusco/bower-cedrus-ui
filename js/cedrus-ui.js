@@ -2,7 +2,7 @@
  * Cedrus UI
  * https://github.com/cedrusco/cedrus-ui
  * @license Copyright Cedrus 2015-2016
- * v0.2.1
+ * v0.2.2
  */
 (function( window, angular, undefined ){
 "use strict";
@@ -357,8 +357,8 @@ var CdCharts;
     var CdChartComponent = (function () {
         function CdChartComponent() {
             this.bindings = {
-                data: '=',
-                options: '='
+                data: '<',
+                options: '<'
             };
             this.template = '<svg></svg>';
             this.controller = 'CdChartController';
@@ -385,14 +385,13 @@ var CdCharts;
                 width: 360,
                 height: 360,
             };
-            this.options = angular.merge(this, this.options, this.defaultOptions);
+            this.options = angular.merge({}, this.defaultOptions, this.options);
             this.width = this.options.width;
             this.height = this.options.height;
             this.svg = d3.select(this.$element[0]).select('svg')
                 .attr('width', this.width)
                 .attr('height', this.height);
             this.chartService = this.$injector.get(this.options.chartType + 'Service');
-            console.log(this.chartService, this.data);
         }
         CdChartController.prototype.$onInit = function () {
             this.drawChart();
@@ -411,6 +410,175 @@ var CdCharts;
     angular
         .module('cedrus.ui.components.cdChart')
         .controller('CdChartController', CdChartController);
+})(CdCharts || (CdCharts = {}));
+
+})();
+(function(){
+"use strict";
+
+var CdCharts;
+(function (CdCharts) {
+    var CdLineChartService = (function () {
+        function CdLineChartService() {
+            this.tableBuilt = false;
+            this.padding = 20;
+            this.getDate = function (d) {
+                return new Date(d);
+            };
+        }
+        CdLineChartService.prototype.draw = function (svg, data, options) {
+            var _this = this;
+            var width = options.width;
+            var height = options.height;
+            if (!this.tableBuilt) {
+                this.svg = svg;
+                this.path = this.svg.append('path')
+                    .attr('class', 'line');
+                this.circles = this.svg.append('g')
+                    .attr('class', 'circles');
+                this.xAxis = this.svg.append('g')
+                    .attr('transform', 'translate(0,' + (height - this.padding) + ')')
+                    .attr('class', 'xAxis');
+                this.yAxis = this.svg.append('g')
+                    .attr('class', 'yAxis')
+                    .attr('transform', 'translate(' + (this.padding + 20) + ', 0)');
+                this.tableBuilt = true;
+            }
+            var xAxisProperty = options.xAxisProp;
+            var yAxisProperty = options.yAxisProp;
+            var minDate = this.getDate(data[0][xAxisProperty]);
+            var maxDate = this.getDate(data[data.length - 1][xAxisProperty]);
+            var xScale = d3.scaleLinear()
+                .domain([minDate, maxDate])
+                .range([this.padding + 20, width - this.padding]);
+            var yScale = d3.scaleLinear()
+                .domain([0, d3.max(data, function (d) { return parseInt(d[yAxisProperty]); })])
+                .range([height - this.padding, 10]);
+            var lineFun = d3.line()
+                .x(function (d) { return xScale(_this.getDate(d[xAxisProperty])); })
+                .y(function (d) { return yScale(d[yAxisProperty]); })
+                .curve(d3.curveLinear);
+            var xAxisGen = d3.axisBottom().scale(xScale).tickFormat(d3.timeFormat('%Y'));
+            var yAxisGen = d3.axisLeft().scale(yScale).ticks(5);
+            svg.selectAll('.line')
+                .transition()
+                .attr('d', lineFun(data))
+                .attr('stroke', 'purple')
+                .attr('fill', 'none');
+            var circles = svg.select('.circles')
+                .selectAll('circle')
+                .data(data, function (d) {
+                return d;
+            });
+            circles.enter()
+                .append('circle')
+                .merge(circles)
+                .attr('cx', function (d, i) {
+                return xScale(_this.getDate(d[xAxisProperty]));
+            })
+                .attr('cy', function (d) { return yScale(d[yAxisProperty]); })
+                .attr('fill', 'purple')
+                .attr('stroke', 'purple')
+                .attr('r', 3.5);
+            circles.exit().remove();
+            svg.select('.xAxis').call(xAxisGen);
+            svg.select('.yAxis').call(yAxisGen);
+        };
+        return CdLineChartService;
+    }());
+    angular.module('cedrus.ui.components.cdChart')
+        .factory('lineChartService', function () { return new CdLineChartService(); });
+})(CdCharts || (CdCharts = {}));
+
+})();
+(function(){
+"use strict";
+
+var CdCharts;
+(function (CdCharts) {
+    var CdPieChartService = (function () {
+        function CdPieChartService() {
+            this.tableBuilt = false;
+        }
+        CdPieChartService.prototype.draw = function (svg, data, options) {
+            function myClickFun(d, i, n) {
+                options.clickFun(d, i, n);
+            }
+            var radius = Math.min(options.width, options.height) / 2;
+            var donutWidth = options.height / 5;
+            var countProp = options.countProp;
+            var labelProp = options.labelProp;
+            var width = options.width;
+            var height = options.height;
+            var legendRectSize = donutWidth / 4;
+            var legendSpacing = legendRectSize / 4;
+            if (!this.tableBuilt) {
+                this.svg = svg
+                    .append('g')
+                    .attr('transform', 'translate(' + width / 2 + ',' + height / 2 + ')');
+                this.pie = d3.pie()
+                    .value(function (d) { return d[countProp]; })
+                    .sort(function (a, b) { return b[countProp] - a[countProp]; });
+                this.tableBuilt = true;
+                this.arc = d3.arc()
+                    .innerRadius(radius - donutWidth)
+                    .outerRadius(radius);
+                this.color = d3.scaleOrdinal(d3.schemeCategory20);
+            }
+            data = data.sort(function (a, b) { return b[countProp] - a[countProp]; });
+            svg = this.svg;
+            var pie = this.pie;
+            var arc = this.arc;
+            var color = this.color;
+            var path = svg.selectAll('path')
+                .data(pie(data));
+            path.exit().remove();
+            path = path.enter()
+                .append('path')
+                .merge(path)
+                .attr('fill', function (d, i) { return color(d.data[labelProp]); });
+            if (options.clickFun) {
+                path.on('click', function (d, i, n) { myClickFun(d, i, n); });
+            }
+            path.transition()
+                .duration(750)
+                .attrTween('d', function (d) {
+                var interpolate = d3.interpolate(this._current, d);
+                this._current = interpolate(0);
+                return function (t) {
+                    return arc(interpolate(t));
+                };
+            });
+            var legend = svg.selectAll('g.legend')
+                .data(data);
+            legend.exit().remove();
+            var legendEnter = legend.enter()
+                .append('g')
+                .attr('class', 'legend');
+            legendEnter.append('rect');
+            legendEnter.append('text');
+            var merged = legendEnter.merge(legend);
+            merged.attr('transform', function (d, i) {
+                var height = legendRectSize + legendSpacing;
+                var offset = height * data.length / 2;
+                var horz = -2 * legendRectSize;
+                var vert = i * height - offset;
+                return 'translate(' + horz + ',' + vert + ')';
+            });
+            merged.select('text')
+                .attr('x', legendRectSize + legendSpacing)
+                .attr('y', legendRectSize - legendSpacing)
+                .text(function (d) { return d[labelProp]; });
+            merged.select('rect')
+                .attr('width', legendRectSize)
+                .attr('height', legendRectSize)
+                .style('fill', function (d) { return color(d[labelProp]); })
+                .style('stroke', function (d) { return color(d[labelProp]); });
+        };
+        return CdPieChartService;
+    }());
+    angular.module('cedrus.ui.components.cdChart')
+        .factory('pieChartService', function () { return new CdPieChartService(); });
 })(CdCharts || (CdCharts = {}));
 
 })();
@@ -651,7 +819,7 @@ var CdPieChart;
 (function (CdPieChart) {
     var CdPieChartComponenet = (function () {
         function CdPieChartComponenet() {
-            this.template = '<svg></svg><style>.legend { font-size: 10px; } rect.disabled {display:none !important;}</style>';
+            this.template = '<svg></svg><style>.legend { font-size: 10px; }</style>';
             this.controller = 'cdPieChartController';
             this.controllerAs = 'vm';
             this.bindings = {
@@ -780,4 +948,4 @@ angular.module('cedrus.ui').run(['$templateCache', function($templateCache) {$te
 $templateCache.put('components/calendar/calendar.tpl.html','<div class="container"><div class="hider" ng-click="vm.displayCal()" ng-show="vm.showCal"></div><div class="input-blocker" ng-click="vm.displayCal()" readonly="true"></div><input type="text" class="md-select" ng-model="vm.selection"><div ng-show="vm.showCal" class="panel"><div class="md-whiteframe-2dp"><div class="yearrow" layout="row" layout-align="space-between end"><md-button class="calbtn" ng-click="vm.setYear(-1)" ng-hide="vm.yearSel" aria-label="previous year"><i class="fa fa-chevron-left"></i></md-button><md-button class="calbtn" ng-click="vm.setYear(-12)" ng-show="vm.yearSel" aria-label="go back one page"><i class="fa fa-chevron-left"></i></md-button><md-button class="calbtn yearbtn" ng-click="vm.flipCal()" aria-label="swap between month and year select">{{vm.date.selYear || vm.initYear}}</md-button><md-button class="calbtn" ng-click="vm.setYear(1)" ng-hide="vm.yearSel" aria-label="next year"><i class="fa fa-chevron-right"></i></md-button><md-button class="calbtn" ng-click="vm.setYear(12)" ng-show="vm.yearSel" aria-label="go forward by one page"><i class="fa fa-chevron-right"></i></md-button></div><div layout="row" ng-repeat="monthRow in vm.monthMap" ng-hide="vm.yearSel"><md-button class="calbtn monthSelect" ng-repeat="month in monthRow" ng-click="vm.setMonth(month.value)" aria-label="choose {{month.value}}">{{month.display}}</md-button></div><div layout="row" ng-repeat="yearRow in vm.yearMap" ng-show="vm.yearSel"><md-button class="calbtn yearSelect" ng-repeat="year in yearRow" ng-click="vm.flipCal(); vm.setYear(year)" aria-label="choose {{year}}">{{(vm.date.selYear||vm.initYear)+year}}</md-button></div></div></div></div>');
 $templateCache.put('components/grouped-bar-chart/grouped-bar-chart.tpl.html','<div class="cd-grouped-bar-chart"><div ng-hide="vm.showData()"><div layout="row" layout-fill layout-align="center center" class="no-data"><span>There are no active tasks.</span></div></div><div ng-show="vm.showData()"><div ng-repeat="group in vm.groupDataKeys"><div layout="row" class="group-item"><div layout="column"><md-icon ng-hide="vm.expandField(group)" md-font-icon="fa fa-caret-right" ng-click="vm.setExpandedField(group)" ng-if="vm.options.subFields"></md-icon><md-icon ng-show="vm.expandField(group)" md-font-icon="fa fa-caret-down" ng-click="vm.setExpandedField(group, true)" ng-if="vm.options.subFields"></md-icon></div><div layout="column" flex><div layout="row" layout-align="space-around none"><div flex="60" layout-align="start center">{{group}}</div><div flex="20">Count: {{vm.groupData[group].length}}</div><div flex="20">{{vm.groupData[group].length*100/vm.totalKeys | number:0}}%</div></div></div></div><div layout="row" flex class="line-color"><div ng-style="{width:vm.groupData[group].length*100/vm.totalKeys + \'%\', \'background\': vm.getColor($index, group)}" class="red-line"></div></div><div class="data-container" ng-show="vm.expandField(group)"><div layout="column" ng-show="vm.expandField(group)" ng-if="vm.options.subFields"><div ng-repeat="el in vm.groupData[group]"><div ng-include="vm.options.extendedTemplate || \'lineChartSingleItemExpanded\'"></div></div></div></div></div><div layout="row" layout-align="end none" class="total">Total Count:{{vm.totalKeys}}</div></div></div><script type="text/ng-template" id="lineChartSingleItemExpanded"><div class="panel" layout="column" layout-align="center none">\n        <div layout="row" layout-align="space-between none" class="data-row">\n            <div ng-repeat="(field, displayText ) in vm.options.subFields">\n                <span class="bold-text">{{displayText}}</span>\n                <span>{{el[field]}}</span>\n            </div>\n        </div>\n    </div></script>');}]);
 })();
-})(window, window.angular);;window.cedrusUI={version:{full: "0.2.1"}};
+})(window, window.angular);;window.cedrusUI={version:{full: "0.2.2"}};
