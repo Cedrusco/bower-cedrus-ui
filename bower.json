@@ -19,7 +19,10 @@
     "components"
   ],
   "homepage": "https://github.com/Cedrusco/bower-cedrus-ui",
-  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/cedrusco/bower-cedrus-ui.git"
+  },
   "dependencies": {
     "angular": "^1.5.8",
     "angular-material": "^1.0.9",
