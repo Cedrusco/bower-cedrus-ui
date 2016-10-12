@@ -2,7 +2,7 @@
  * Cedrus UI
  * https://github.com/cedrusco/cedrus-ui
  * @license Copyright Cedrus 2015-2016
- * v0.2.3
+ * v0.2.4
  */
 .no-style {
   font-weight: normal;
@@ -14,33 +14,6 @@
 
 html, body {
   min-height: 100%; }
-
-.d3-tip {
-  line-height: 0.5%;
-  font-size: 9px;
-  font-weight: bold;
-  padding: 12px;
-  background: rgba(66, 66, 66, 0.8);
-  color: #fff;
-  border-radius: 10px; }
-
-/* Creates a small triangle extender for the tooltip */
-.d3-tip:after {
-  box-sizing: border-box;
-  display: inline;
-  font-size: 5px;
-  width: 100%;
-  line-height: 1;
-  color: rgba(66, 66, 66, 0.8);
-  content: "\25BC";
-  position: absolute;
-  text-align: center; }
-
-/* Style northward tooltips differently */
-.d3-tip.n:after {
-  margin: -1px 0 0 0;
-  top: 100%;
-  left: 0; }
 
 cd-calendar .calbtn.md-button {
   border-radius: 50%;
@@ -108,8 +81,58 @@ cd-calendar .arrowmargin {
 cd-calendar .yearrow {
   background: lightgray; }
 
-.legend text {
+cd-chart .legend text {
   font-size: 10px; }
+
+.d3-tip {
+  line-height: 1;
+  font-weight: bold;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  border-radius: 2px;
+  pointer-events: none; }
+
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+  box-sizing: border-box;
+  display: inline;
+  font-size: 10px;
+  width: 100%;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.8);
+  position: absolute;
+  pointer-events: none; }
+
+/* Northward tooltips */
+.d3-tip.n:after {
+  content: "\25BC";
+  margin: -1px 0 0 0;
+  top: 100%;
+  left: 0;
+  text-align: center; }
+
+/* Eastward tooltips */
+.d3-tip.e:after {
+  content: "\25C0";
+  margin: -4px 0 0 0;
+  top: 50%;
+  left: -8px; }
+
+/* Southward tooltips */
+.d3-tip.s:after {
+  content: "\25B2";
+  margin: 0 0 1px 0;
+  top: -8px;
+  left: 0;
+  text-align: center; }
+
+/* Westward tooltips */
+.d3-tip.w:after {
+  content: "\25B6";
+  margin: -4px 0 0 -1px;
+  top: 50%;
+  left: 100%; }
 
 .cd-grouped-bar-chart .panel {
   background: #f4f4f4;
