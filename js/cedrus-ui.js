@@ -2,7 +2,7 @@
  * Cedrus UI
  * https://github.com/cedrusco/cedrus-ui
  * @license Copyright Cedrus 2015-2016
- * v0.2.7
+ * v0.2.8
  */
 (function( window, angular, undefined ){
 "use strict";
@@ -182,9 +182,18 @@ var CdCharts;
             this.drawChart(optionsChanged);
         };
         CdChartController.prototype.drawChart = function (optionsChanged) {
-            if (optionsChanged)
+            var _this = this;
+            if (optionsChanged) {
+                this.chartService.mergeEvents(this.options);
+                this.chartService.definePosition(this.options, this.drawSettings);
                 this.chartService.prepareOptions(this.element, this.data, this.options, this.drawSettings);
+            }
             this.chartService.draw(this.element, this.data, this.options, this.drawSettings);
+            this.options.series.forEach(function (series, index) {
+                var isVisible = series.visible !== false;
+                var dataset = isVisible ? _this.data[series['dataset']] : [];
+                _this.chartService.drawSeries(_this.element, dataset, _this.options, _this.drawSettings, series, index);
+            });
         };
         CdChartController.$inject = ['$element', '$injector'];
         return CdChartController;
@@ -215,7 +224,25 @@ var CdCharts;
                 ordinal: d3.scaleOrdinal()
             };
         }
-        DrawService.prototype.createTooltip = function (svg, options, accessor) {
+        DrawService.prototype.mergeEvents = function (options) {
+            if (!options)
+                return;
+            var events = {
+                mouseout: [],
+                mouseover: []
+            };
+            if (options.events)
+                Object.keys(options.events).forEach(function (key) {
+                    if (key === 'bind')
+                        return;
+                    if (!events[key])
+                        events[key] = [];
+                    events[key].push(options.events[key]);
+                });
+            this.events = events;
+        };
+        DrawService.prototype.createTooltip = function (svg, options, drawSettings, accessor) {
+            accessor = options.tooltip.customText ? this.createAccessor(options.tooltip.customText, 'tooltip data accessor') : accessor;
             var tip = d3.tip();
             tip.attr('class', 'cd-chart d3-tip');
             tip.html(function (d) {
@@ -226,7 +253,9 @@ var CdCharts;
             }
             ;
             svg.call(tip);
-            return tip;
+            drawSettings.tip = tip;
+            this.events['mouseover'].push(drawSettings.tip.show);
+            this.events['mouseout'].push(drawSettings.tip.hide);
         };
         DrawService.prototype.createAccessor = function (prop, propName) {
             if (!prop) {
@@ -243,11 +272,19 @@ var CdCharts;
                 };
             }
         };
-        DrawService.prototype.wrapEventFun = function (eventFun) {
-            return function (d, i, n) {
-                var event = d3.event;
-                eventFun.bind(this)(d, i, n, event);
-            };
+        DrawService.prototype.attachListenters = function (selection, eventMap, bind) {
+            var eventTitles = Object.keys(eventMap);
+            eventTitles.forEach(function (eventName) {
+                selection.on(eventName, function (d, i, n) {
+                    var _this = this;
+                    var currentEvent = angular.copy(d3.event);
+                    if (!Array.isArray(eventMap[eventName]))
+                        eventMap[eventName] = [eventMap[eventName]];
+                    eventMap[eventName].forEach(function (event) {
+                        bind ? event.bind(_this)(d, i, n, currentEvent) : event(d, i, n, currentEvent);
+                    });
+                });
+            });
         };
         DrawService.$inject = ['$scope'];
         return DrawService;
@@ -541,7 +578,7 @@ var CdCharts;
                 yAxisHorizontalShift: this.padding,
                 legendHorizontalShift: legendHorizontalOffset,
                 legendVerticalShift: (isTop ? (options.height - this.legendRectSize) : 0) + legendVerticalOffset,
-                yDomainOffset: isTop ? this.padding : (this.legendRectSize + this.legendSpacing)
+                yRangeMax: isTop ? this.padding : (this.legendRectSize + this.legendSpacing)
             };
         };
         CdLineChartService.prototype.drawLegend = function (legend, data, options, drawSettings) {
@@ -561,8 +598,8 @@ var CdCharts;
                 var offset = _this.padding * 2 + (i * increment);
                 return 'translate(' + offset + ',' + 0 + ')';
             });
-            if (options.legend.clickFun) {
-                legend.on('click', this.wrapEventFun(options.legend.clickFun));
+            if (options.legend.events) {
+                legend.call(this.attachListenters, options.legend.events, options.events.bind);
             }
             legend.append('rect')
                 .attr('width', this.legendRectSize)
@@ -581,7 +618,6 @@ var CdCharts;
                 .attr('y', this.legendRectSize / 1.5);
         };
         CdLineChartService.prototype.prepareOptions = function (svg, data, options, drawSettings) {
-            this.definePosition(options, drawSettings);
             var xAxis = drawSettings.xAxis ? svg.select('.xAxis') : svg.append('g').attr('class', 'xAxis');
             drawSettings.xAxis = xAxis
                 .attr('transform', 'translate(' + drawSettings.positionDetails.xAxisHorizontalShift + ',' + drawSettings.positionDetails.xAxisVerticalShift + ')');
@@ -608,74 +644,67 @@ var CdCharts;
                     drawSettings.dotSets[index] = svg.append('g').attr('class', 'circles' + index);
             });
         };
+        CdLineChartService.prototype.drawSeries = function (svg, dataset, options, drawSettings, series, index) {
+            var lines = svg.select('.line' + index);
+            if (options.animation.type !== 'none') {
+                lines = lines.transition();
+                if (options.animation.delay)
+                    lines.delay(options.animation.delay);
+                if (options.animation.duration)
+                    lines.duration(options.animation.duration);
+            }
+            lines.attr('d', drawSettings.lineFun(dataset))
+                .attr('stroke', series.color)
+                .attr('fill', 'none');
+            var circles = svg.select('.circles' + index)
+                .selectAll('circle')
+                .data(dataset);
+            var newCircles = circles.enter()
+                .append('circle')
+                .merge(circles);
+            newCircles.attr('cx', function (d, i, n) {
+                return drawSettings.xScale(drawSettings.xAccessor(d, i, n));
+            })
+                .attr('cy', function (d, i, n) { return drawSettings.yScale(drawSettings.yAccessor(d, i, n)); })
+                .attr('fill', series.color)
+                .attr('stroke', series.color)
+                .attr('r', series.dotSize || 2.5)
+                .call(this.attachListenters, this.events, options.events.bind);
+            if (series.drawDots === false) {
+                newCircles
+                    .attr('style', 'opacity:0;')
+                    .attr('r', 5);
+            }
+            circles.exit().remove();
+        };
         CdLineChartService.prototype.draw = function (svg, data, options, drawSettings) {
-            var _this = this;
-            var xAccessor = this.createAccessor(options.axes.x.key, 'xAxis accessor');
-            var yAccessor = this.createAccessor(options.axes.y.key, 'yAxis accessor');
-            var tooltipAccessor = options.tooltip.customText ? this.createAccessor(options.tooltip.customText, 'tooltip data accessor') : yAccessor;
+            if (!options.events)
+                options.events = {};
+            drawSettings.xAccessor = this.createAccessor(options.axes.x.key, 'xAxis accessor');
+            drawSettings.yAccessor = this.createAccessor(options.axes.y.key, 'yAxis accessor');
             if (options.tooltip.enabled !== false)
-                drawSettings.tip = this.createTooltip(svg, options, tooltipAccessor);
+                drawSettings.tip = this.createTooltip(svg, options, drawSettings, drawSettings.yAccessor);
             this.drawLegend(drawSettings.legend, data, options, drawSettings);
-            var yMin = this.getMinY(data, options, yAccessor);
-            var yMax = this.getMaxY(data, options, yAccessor);
-            var xMin = this.getMinX(data, options, xAccessor);
-            var xMax = this.getMaxX(data, options, xAccessor);
-            options.series.forEach(function (series, index) {
-                if (series.visible === false) {
-                    dataset = [];
-                }
-                else {
-                    var dataset = data[series['dataset']];
-                }
-                var xScaleType = options.axes.x.scaleType ? _this.scaleMap[options.axes.x.scaleType] : d3.scaleLinear();
-                var xScale = xScaleType
-                    .domain([xMin, xMax])
-                    .range([(drawSettings.positionDetails.xAxisHorizontalShift + _this.padding), (options.width - _this.padding)]);
-                var yScaleType = options.axes.y.scaleType ? _this.scaleMap[options.axes.y.scaleType] : d3.scaleLinear();
-                var yScale = yScaleType
-                    .domain([yMin, yMax])
-                    .range([drawSettings.positionDetails.xAxisVerticalShift, drawSettings.positionDetails.yDomainOffset]);
-                var lineFun = d3.line()
-                    .x(function (d, i, n) { return xScale(xAccessor(d, i, n)); })
-                    .y(function (d, i, n) { return yScale(yAccessor(d, i, n)); })
-                    .curve(d3.curveLinear);
-                var xAxisGen = _this.createAxes(xScale, options, 'bottom', 'x');
-                var yAxisGen = _this.createAxes(yScale, options, 'left', 'y');
-                var lines = svg.select('.line' + index);
-                if (options.animation.type !== 'none') {
-                    lines = lines.transition();
-                    if (options.animation.duration)
-                        lines.delay(options.animation.delay);
-                    if (options.animation.duration)
-                        lines.duration(options.animation.duration);
-                }
-                lines.attr('d', lineFun(dataset))
-                    .attr('stroke', series.color)
-                    .attr('fill', 'none');
-                var circles = svg.select('.circles' + index)
-                    .selectAll('circle')
-                    .data(dataset);
-                var newCircles = circles.enter()
-                    .append('circle')
-                    .merge(circles);
-                newCircles.attr('cx', function (d, i, n) {
-                    return xScale(xAccessor(d, i, n));
-                })
-                    .attr('cy', function (d, i, n) { return yScale(yAccessor(d, i, n)); })
-                    .attr('fill', series.color)
-                    .attr('stroke', series.color)
-                    .attr('r', series.dotSize || 2.5)
-                    .on('mouseover', drawSettings.tip.show)
-                    .on('mouseout', drawSettings.tip.hide);
-                if (series.drawDots === false) {
-                    newCircles
-                        .attr('style', 'opacity:0;')
-                        .attr('r', 5);
-                }
-                circles.exit().remove();
-                svg.select('.xAxis').call(xAxisGen);
-                svg.select('.yAxis').call(yAxisGen);
-            });
+            var yMin = this.getMinY(data, options, drawSettings.yAccessor);
+            var yMax = this.getMaxY(data, options, drawSettings.yAccessor);
+            var xMin = this.getMinX(data, options, drawSettings.xAccessor);
+            var xMax = this.getMaxX(data, options, drawSettings.xAccessor);
+            var xScaleType = options.axes.x.scaleType ? this.scaleMap[options.axes.x.scaleType] : d3.scaleLinear();
+            drawSettings.xScale = xScaleType
+                .domain([xMin, xMax])
+                .range([(drawSettings.positionDetails.xAxisHorizontalShift + this.padding), (options.width - this.padding)]);
+            var yScaleType = options.axes.y.scaleType ? this.scaleMap[options.axes.y.scaleType] : d3.scaleLinear();
+            drawSettings.yScale = yScaleType
+                .domain([yMin, yMax])
+                .range([drawSettings.positionDetails.xAxisVerticalShift, drawSettings.positionDetails.yRangeMax]);
+            drawSettings.lineFun = d3.line()
+                .x(function (d, i, n) { return drawSettings.xScale(drawSettings.xAccessor(d, i, n)); })
+                .y(function (d, i, n) { return drawSettings.yScale(drawSettings.yAccessor(d, i, n)); })
+                .curve(d3.curveLinear);
+            var xAxisGen = this.createAxes(drawSettings.xScale, options, 'bottom', 'x');
+            var yAxisGen = this.createAxes(drawSettings.yScale, options, 'left', 'y');
+            svg.select('.xAxis').call(xAxisGen);
+            svg.select('.yAxis').call(yAxisGen);
         };
         return CdLineChartService;
     }(CdCharts.DrawService));
@@ -694,59 +723,55 @@ var CdCharts;
         __extends(CdPieChartService, _super);
         function CdPieChartService() {
             _super.call(this);
-            this.padding = 20;
         }
-        CdPieChartService.prototype.draw = function (svg, data, options, drawSettings) {
-            if (!data[0].length)
-                return;
-            function myClickFun(d, i, n) {
-                options.clickFun(d, i, n);
-            }
-            var radius = Math.min(options.width, options.height) / 2;
-            var donutWidth = options.height / 5;
-            var countProperty = options.countProperty;
-            var labelProperty = options.labelProperty;
-            var width = options.width;
-            var height = options.height;
-            var legendRectSize = donutWidth / 4;
-            var legendSpacing = legendRectSize / 4;
-            var labelProcessor = this.createProcessor('labelProperty', options);
-            var countProcessor = this.createProcessor('countProperty', options);
-            if (!drawSettings.setupComplete) {
-                drawSettings.svg = svg
-                    .append('g')
-                    .attr('transform', 'translate(' + width / 2 + ',' + height / 2 + ')');
-                drawSettings.pie = d3.pie()
-                    .value(function (d) { return countProcessor(d); })
-                    .sort(function (a, b, i) { return countProcessor(b, i) - countProcessor(a); });
-                drawSettings.arc = d3.arc()
-                    .innerRadius(radius - donutWidth)
-                    .outerRadius(radius);
-                drawSettings.color = d3.scaleOrdinal(d3.schemeCategory20);
-                drawSettings.setupComplete = true;
-            }
-            data = data[0].sort(function (a, b) { return countProcessor(b) - countProcessor(a); });
-            var path = drawSettings.svg.selectAll('path')
-                .data(drawSettings.pie(data));
-            path.exit().remove();
-            path = path.enter()
-                .append('path')
-                .merge(path)
-                .attr('fill', function (d, i) { return drawSettings.color(labelProcessor(d.data, i)); });
-            if (options.clickFun) {
-                path.on('click', function (d, i, n) { myClickFun(d, i, n); });
-            }
-            path.transition()
-                .duration(750)
-                .attrTween('d', function (d) {
-                var interpolate = d3.interpolate(this._current, d);
-                this._current = interpolate(0);
-                return function (t) {
-                    return drawSettings.arc(interpolate(t));
-                };
+        CdPieChartService.prototype.prepareOptions = function (svg, data, options, drawSettings) {
+            var countAccessor = this.createAccessor(options.countProperty, 'countProperty');
+            var positionDetails = drawSettings.positionDetails;
+            drawSettings.pieGroup = drawSettings.pieGroup || svg
+                .append('g')
+                .attr('transform', 'translate(' + positionDetails.pieHorizontalShift + ',' + positionDetails.pieVerticalShift + ')');
+            drawSettings.pie = drawSettings.pie || d3.pie()
+                .value(function (d) { return countAccessor(d); })
+                .sort(function (a, b) { return countAccessor(b) - countAccessor(a); });
+            drawSettings.arc = drawSettings.arc || d3.arc()
+                .innerRadius(positionDetails.innerRadius)
+                .outerRadius(positionDetails.radius);
+            drawSettings.color = drawSettings.color || d3.scaleOrdinal(d3.schemeCategory20);
+            drawSettings.legend = drawSettings.legend || svg.append('g')
+                .attr('class', 'legendGroup')
+                .attr('transform', function () {
+                return 'translate(' + positionDetails.legendHorizontalShift + ',' + positionDetails.legendVerticalShift + ')';
             });
-            var legend = drawSettings.svg.selectAll('g.legend')
-                .data(data);
+        };
+        ;
+        CdPieChartService.prototype.definePosition = function (options, drawSettings) {
+            var radius = Math.min(options.width, options.height) / 2;
+            var donutWidth = options.donutWidth || (options.height / 5);
+            var innerRadius = radius - donutWidth;
+            drawSettings.positionDetails = {
+                radius: radius,
+                donutWidth: donutWidth,
+                innerRadius: radius - donutWidth,
+                pieVerticalShift: options.height / 2,
+                pieHorizontalShift: options.width / 2,
+                legendHorizontalShift: getLegendHorizontalShift(),
+                legendVerticalShift: getLegendHorizontalShift(),
+                legendWidth: getLegendWidth()
+            };
+            function getLegendHorizontalShift() {
+                return radius - (radius - donutWidth) / Math.sqrt(2);
+            }
+            function getLegendWidth() {
+                return (radius - donutWidth) * 2 / Math.sqrt(2);
+            }
+        };
+        ;
+        CdPieChartService.prototype.drawLegend = function (svg, data, options, drawSettings) {
+            var legendDiameter = (2 * drawSettings.positionDetails.innerRadius) / Math.sqrt(2);
+            var legendUnit = legendDiameter / data.length;
+            var legendSpacing = legendUnit / 3;
+            var legendRectSize = legendUnit - legendSpacing;
+            var legend = drawSettings.legend.selectAll('g.legend').data(data);
             legend.exit().remove();
             var legendEnter = legend.enter()
                 .append('g')
@@ -754,22 +779,67 @@ var CdCharts;
             legendEnter.append('rect');
             legendEnter.append('text');
             var merged = legendEnter.merge(legend);
-            merged.attr('transform', function (d, i) {
-                var height = legendRectSize + legendSpacing;
-                var offset = height * data.length / 2;
-                var horz = -2 * legendRectSize;
-                var vert = i * height - offset;
-                return 'translate(' + horz + ',' + vert + ')';
-            });
+            var widestTextEl;
+            if (options.legend.events)
+                merged.call(this.attachListenters, options.legend.events, options.events.bind);
             merged.select('text')
                 .attr('x', legendRectSize + legendSpacing)
                 .attr('y', legendRectSize - legendSpacing)
-                .text(function (d, i) { return labelProcessor(d, i); });
+                .text(function (d, i, n) {
+                return drawSettings.labelAccessor(d, i, n);
+            })
+                .call(function (selection) {
+                var textEls = selection._groups[0];
+                widestTextEl = d3.max(textEls, function (textEl) { return textEl.getBBox().width; });
+            });
             merged.select('rect')
                 .attr('width', legendRectSize)
                 .attr('height', legendRectSize)
-                .style('fill', function (d, i) { return drawSettings.color(labelProcessor(d, i)); })
-                .style('stroke', function (d, i) { return drawSettings.color(labelProcessor(d, i)); });
+                .style('fill', function (d, i, n) { return drawSettings.color(drawSettings.labelAccessor(d, i, n)); })
+                .style('stroke', function (d, i, n) { return drawSettings.color(drawSettings.labelAccessor(d, i, n)); });
+            merged.attr('transform', function (d, i) {
+                var height = legendRectSize + legendSpacing;
+                var horz = (drawSettings.positionDetails.legendWidth - (widestTextEl + legendRectSize - legendSpacing)) / 2;
+                var vert = i * height + legendSpacing;
+                return 'translate(' + horz + ',' + vert + ')';
+            });
+        };
+        CdPieChartService.prototype.drawSeries = function (svg, data, options, drawSettings) {
+            this.drawLegend(svg, data, options, drawSettings);
+            var path = drawSettings.pieGroup.selectAll('path')
+                .data(drawSettings.pie(data));
+            path.exit().remove();
+            path = path.enter()
+                .append('path')
+                .merge(path)
+                .call(function (path) {
+                if (options.animation !== 'none') {
+                    var animation = path.transition();
+                    if (options.animation.duration)
+                        animation.duration(options.animation.duration);
+                    if (options.animation.delay)
+                        animation.delay(options.animation.delay);
+                    animation.attrTween('d', function (d) {
+                        var interpolate = d3.interpolate(this._current, d);
+                        this._current = interpolate(0);
+                        return function (t) {
+                            return drawSettings.arc(interpolate(t));
+                        };
+                    });
+                }
+            })
+                .attr('fill', function (d, i) { return drawSettings.color(drawSettings.labelAccessor(d.data, i)); });
+            if (options.events) {
+                path.call(this.attachListenters, this.events, options.events.bind);
+            }
+        };
+        CdPieChartService.prototype.draw = function (svg, data, options, drawSettings) {
+            drawSettings.countAccessor = this.createAccessor(options.countProperty, 'countProperty');
+            drawSettings.labelAccessor = this.createAccessor(options.labelProperty, 'labelProperty');
+            if (!options.events)
+                options.events = {};
+            if (options.tooltip.enabled !== false)
+                drawSettings.tip = this.createTooltip(svg, options, drawSettings, drawSettings.countAccessor);
         };
         return CdPieChartService;
     }(CdCharts.DrawService));
@@ -909,4 +979,4 @@ var CdgroupedBarChart;
 
 angular.module('cedrus.ui').run(['$templateCache', function($templateCache) {$templateCache.put('components/calendar/calendar.tpl.html','<div class="container"><div class="hider" ng-click="vm.displayCal()" ng-show="vm.showCal"></div><div class="input-blocker" ng-click="vm.displayCal()" readonly="true"></div><input type="text" class="md-select" ng-model="vm.selection"><div ng-show="vm.showCal" class="panel"><div class="md-whiteframe-2dp"><div class="yearrow" layout="row" layout-align="space-between end"><md-button class="calbtn" ng-click="vm.setYear(-1)" ng-hide="vm.yearSel" aria-label="previous year"><i class="fa fa-chevron-left"></i></md-button><md-button class="calbtn" ng-click="vm.setYear(-12)" ng-show="vm.yearSel" aria-label="go back one page"><i class="fa fa-chevron-left"></i></md-button><md-button class="calbtn yearbtn" ng-click="vm.flipCal()" aria-label="swap between month and year select">{{vm.date.selYear || vm.initYear}}</md-button><md-button class="calbtn" ng-click="vm.setYear(1)" ng-hide="vm.yearSel" aria-label="next year"><i class="fa fa-chevron-right"></i></md-button><md-button class="calbtn" ng-click="vm.setYear(12)" ng-show="vm.yearSel" aria-label="go forward by one page"><i class="fa fa-chevron-right"></i></md-button></div><div layout="row" ng-repeat="monthRow in vm.monthMap" ng-hide="vm.yearSel"><md-button class="calbtn monthSelect" ng-repeat="month in monthRow" ng-click="vm.setMonth(month.value)" aria-label="choose {{month.value}}">{{month.display}}</md-button></div><div layout="row" ng-repeat="yearRow in vm.yearMap" ng-show="vm.yearSel"><md-button class="calbtn yearSelect" ng-repeat="year in yearRow" ng-click="vm.flipCal(); vm.setYear(year)" aria-label="choose {{year}}">{{(vm.date.selYear||vm.initYear)+year}}</md-button></div></div></div></div>');
 $templateCache.put('components/grouped-bar-chart/grouped-bar-chart.tpl.html','<div class="cd-grouped-bar-chart"><div ng-hide="vm.showData()"><div layout="row" layout-fill layout-align="center center" class="no-data"><span>There are no active tasks.</span></div></div><div ng-show="vm.showData()"><div ng-repeat="group in vm.groupDataKeys"><div layout="row" class="group-item"><div layout="column"><md-icon ng-hide="vm.expandField(group)" md-font-icon="fa fa-caret-right" ng-click="vm.setExpandedField(group)" ng-if="vm.options.subFields"></md-icon><md-icon ng-show="vm.expandField(group)" md-font-icon="fa fa-caret-down" ng-click="vm.setExpandedField(group, true)" ng-if="vm.options.subFields"></md-icon></div><div layout="column" flex><div layout="row" layout-align="space-around none"><div flex="60" layout-align="start center">{{group}}</div><div flex="20">Count: {{vm.groupData[group].length}}</div><div flex="20">{{vm.groupData[group].length*100/vm.totalKeys | number:0}}%</div></div></div></div><div layout="row" flex class="line-color"><div ng-style="{width:vm.groupData[group].length*100/vm.totalKeys + \'%\', \'background\': vm.getColor($index, group)}" class="red-line"></div></div><div class="data-container" ng-show="vm.expandField(group)"><div layout="column" ng-show="vm.expandField(group)" ng-if="vm.options.subFields"><div ng-repeat="el in vm.groupData[group]"><div ng-include="vm.options.extendedTemplate || \'lineChartSingleItemExpanded\'"></div></div></div></div></div><div layout="row" layout-align="end none" class="total">Total Count:{{vm.totalKeys}}</div></div></div><script type="text/ng-template" id="lineChartSingleItemExpanded"><div class="panel" layout="column" layout-align="center none">\n        <div layout="row" layout-align="space-between none" class="data-row">\n            <div ng-repeat="(field, displayText ) in vm.options.subFields">\n                <span class="bold-text">{{displayText}}</span>\n                <span>{{el[field]}}</span>\n            </div>\n        </div>\n    </div></script>');}]);
-})(window, window.angular);;window.cedrusUI={version:{full: "0.2.7"}};
+})(window, window.angular);;window.cedrusUI={version:{full: "0.2.8"}};
