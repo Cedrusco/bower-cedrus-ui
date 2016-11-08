@@ -2,7 +2,7 @@
  * Cedrus UI
  * https://github.com/cedrusco/cedrus-ui
  * @license Copyright Cedrus 2015-2016
- * v0.2.8
+ * v0.2.9
  */
 .no-style {
   font-weight: normal;
@@ -196,3 +196,11 @@ cd-chart .legend text {
 
 .cd-grouped-bar-chart .total {
   margin-top: 10px; }
+
+.cd-sidebar-filter ul {
+  margin-top: 0;
+  margin-bottom: 0;
+  list-style: none; }
+
+.cd-sidebar-filter .cdFilterFlat {
+  padding-left: 0px; }

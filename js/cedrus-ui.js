@@ -2,12 +2,12 @@
  * Cedrus UI
  * https://github.com/cedrusco/cedrus-ui
  * @license Copyright Cedrus 2015-2016
- * v0.2.8
+ * v0.2.9
  */
 (function( window, angular, undefined ){
 "use strict";
 
-angular.module('cedrus.ui', ["ngMaterial","ngAnimate","cedrus.ui.core","cedrus.ui.components.calendar","cedrus.ui.components.cdChart","cedrus.ui.components.cdGroupedBarChart","cedrus.ui.components.constant"]);
+angular.module('cedrus.ui', ["ngMaterial","ngAnimate","cedrus.ui.core","cedrus.ui.components.calendar","cedrus.ui.components.cdChart","cedrus.ui.components.cdGroupedBarChart","cedrus.ui.components.sidebarFilter","cedrus.ui.components.constant"]);
 var Core;
 (function (Core) {
     angular
@@ -136,6 +136,7 @@ var CdCalendar;
         }
         return CalendarComponent;
     }());
+    CdCalendar.CalendarComponent = CalendarComponent;
     angular
         .module('cedrus.ui.components.calendar', [])
         .component('cdCalendar', new CalendarComponent());
@@ -312,6 +313,34 @@ var CdgroupedBarChart;
         .component('cdGroupedBarChart', new GroupedBarChartComponent());
 })(CdgroupedBarChart || (CdgroupedBarChart = {}));
 
+var cedrus;
+(function (cedrus) {
+    var ui;
+    (function (ui) {
+        var components;
+        (function (components) {
+            var sidebarFilter;
+            (function (sidebarFilter) {
+                var SidebarFilter = (function () {
+                    function SidebarFilter() {
+                        this.templateUrl = 'components/sidebar-filter/sidebar-filter.tpl.html';
+                        this.controllerAs = 'vm';
+                        this.controller = 'SidebarFilterController';
+                        this.bindings = {
+                            options: '<',
+                            customFields: '<?'
+                        };
+                    }
+                    return SidebarFilter;
+                }());
+                angular
+                    .module('cedrus.ui.components.sidebarFilter', [])
+                    .component('cdSidebarFilter', new SidebarFilter());
+            })(sidebarFilter = components.sidebarFilter || (components.sidebarFilter = {}));
+        })(components = ui.components || (ui.components = {}));
+    })(ui = cedrus.ui || (cedrus.ui = {}));
+})(cedrus || (cedrus = {}));
+
 var CdCalendar;
 (function (CdCalendar) {
     var CalendarController = (function () {
@@ -372,6 +401,7 @@ var CdCalendar;
         CalendarController.$inject = ['$element'];
         return CalendarController;
     }());
+    CdCalendar.CalendarController = CalendarController;
     angular
         .module('cedrus.ui.components.calendar')
         .controller('CalendarController', CalendarController);
@@ -435,6 +465,7 @@ var CdCharts;
         };
         return CdBarChartService;
     }());
+    CdCharts.CdBarChartService = CdBarChartService;
     angular.module('cedrus.ui.components.cdChart')
         .service('barChartService', CdBarChartService);
 })(CdCharts || (CdCharts = {}));
@@ -708,6 +739,7 @@ var CdCharts;
         };
         return CdLineChartService;
     }(CdCharts.DrawService));
+    CdCharts.CdLineChartService = CdLineChartService;
     angular.module('cedrus.ui.components.cdChart')
         .factory('lineChartService', function () { return new CdLineChartService(); });
 })(CdCharts || (CdCharts = {}));
@@ -843,6 +875,7 @@ var CdCharts;
         };
         return CdPieChartService;
     }(CdCharts.DrawService));
+    CdCharts.CdPieChartService = CdPieChartService;
     angular.module('cedrus.ui.components.cdChart')
         .factory('pieChartService', function () { return new CdPieChartService(); });
 })(CdCharts || (CdCharts = {}));
@@ -977,6 +1010,104 @@ var CdgroupedBarChart;
         .controller('groupedBarChartController', GroupedBarChartController);
 })(CdgroupedBarChart || (CdgroupedBarChart = {}));
 
+var cedrus;
+(function (cedrus) {
+    var ui;
+    (function (ui) {
+        var components;
+        (function (components) {
+            var sidebarFilter;
+            (function (sidebarFilter) {
+                var SidebarFilterController = (function () {
+                    function SidebarFilterController() {
+                        var _this = this;
+                        this.setDefaults = function () {
+                            _this.filters = angular.copy(_this.options.defaultFilterOptions);
+                            _this.filterGroups = angular.copy(_this.options.defaultFilterGroups);
+                            _this.options.currentFilters = {};
+                            var filters = {};
+                            for (var group in _this.filters) {
+                                filters[group] = {};
+                                for (var filter in _this.filters[group]) {
+                                    if (_this.filters[group][filter].type === 'checkbox') {
+                                        filters[group][filter] = [];
+                                    }
+                                    else {
+                                        var customField = _this.customFields[_this.filters[group][filter].type];
+                                        if (customField.valuesStoredAs === 'object')
+                                            filters[group][filter] = {};
+                                        else if (customField.valuesStoredAs === 'array')
+                                            filters[group][filter] = [];
+                                    }
+                                }
+                            }
+                            ;
+                            _this.options.currentFilters = filters;
+                        };
+                        this.changeFilter = function (filter, optionName, index) {
+                            var filterName = filter.name;
+                            var group = filter.group;
+                            var filterOptions = filter.options;
+                            var updatedOption = filter.options[optionName];
+                            var currentFilterOption = _this.options.currentFilters[group][filterName];
+                            var changedFilter = {
+                                group: group,
+                                filterName: filterName,
+                                updatedOption: updatedOption.value,
+                                isSelected: updatedOption.isSelected
+                            };
+                            if (filter.type === 'checkbox') {
+                                _this.options.currentFilters[group][filterName] = checkboxHandler(currentFilterOption, updatedOption);
+                            }
+                            else {
+                                _this.options.currentFilters[group][filterName] = _this.customFields[filter.type].handler(currentFilterOption, updatedOption, filter);
+                            }
+                            _this.options.filterChanged(_this.options.currentFilters, changedFilter);
+                        };
+                        this.setDefaults();
+                    }
+                    SidebarFilterController.prototype.toggleExpand = function (filterOption) {
+                        filterOption.isExpanded = !filterOption.isExpanded;
+                    };
+                    SidebarFilterController.prototype.processTitle = function (option, level) {
+                        if (typeof option.title === 'string')
+                            return option.title;
+                        else if (typeof option.title === 'function') {
+                            return option.title(option, level);
+                        }
+                        else
+                            return option.value;
+                    };
+                    SidebarFilterController.$inject = [];
+                    return SidebarFilterController;
+                }());
+                var TitleTypes;
+                (function (TitleTypes) {
+                    TitleTypes[TitleTypes["GROUP"] = 0] = "GROUP";
+                    TitleTypes[TitleTypes["FILTER"] = 1] = "FILTER";
+                    TitleTypes[TitleTypes["OPTION"] = 2] = "OPTION";
+                })(TitleTypes || (TitleTypes = {}));
+                angular
+                    .module('cedrus.ui.components.sidebarFilter')
+                    .controller('SidebarFilterController', SidebarFilterController);
+            })(sidebarFilter = components.sidebarFilter || (components.sidebarFilter = {}));
+        })(components = ui.components || (ui.components = {}));
+    })(ui = cedrus.ui || (cedrus.ui = {}));
+})(cedrus || (cedrus = {}));
+function checkboxHandler(currentFilterOption, updatedOption) {
+    if (updatedOption.isSelected) {
+        currentFilterOption.push(updatedOption.value);
+    }
+    else {
+        var index = currentFilterOption.indexOf(updatedOption.value);
+        if (index > -1) {
+            currentFilterOption.splice(index, 1);
+        }
+    }
+    return currentFilterOption;
+}
+
 angular.module('cedrus.ui').run(['$templateCache', function($templateCache) {$templateCache.put('components/calendar/calendar.tpl.html','<div class="container"><div class="hider" ng-click="vm.displayCal()" ng-show="vm.showCal"></div><div class="input-blocker" ng-click="vm.displayCal()" readonly="true"></div><input type="text" class="md-select" ng-model="vm.selection"><div ng-show="vm.showCal" class="panel"><div class="md-whiteframe-2dp"><div class="yearrow" layout="row" layout-align="space-between end"><md-button class="calbtn" ng-click="vm.setYear(-1)" ng-hide="vm.yearSel" aria-label="previous year"><i class="fa fa-chevron-left"></i></md-button><md-button class="calbtn" ng-click="vm.setYear(-12)" ng-show="vm.yearSel" aria-label="go back one page"><i class="fa fa-chevron-left"></i></md-button><md-button class="calbtn yearbtn" ng-click="vm.flipCal()" aria-label="swap between month and year select">{{vm.date.selYear || vm.initYear}}</md-button><md-button class="calbtn" ng-click="vm.setYear(1)" ng-hide="vm.yearSel" aria-label="next year"><i class="fa fa-chevron-right"></i></md-button><md-button class="calbtn" ng-click="vm.setYear(12)" ng-show="vm.yearSel" aria-label="go forward by one page"><i class="fa fa-chevron-right"></i></md-button></div><div layout="row" ng-repeat="monthRow in vm.monthMap" ng-hide="vm.yearSel"><md-button class="calbtn monthSelect" ng-repeat="month in monthRow" ng-click="vm.setMonth(month.value)" aria-label="choose {{month.value}}">{{month.display}}</md-button></div><div layout="row" ng-repeat="yearRow in vm.yearMap" ng-show="vm.yearSel"><md-button class="calbtn yearSelect" ng-repeat="year in yearRow" ng-click="vm.flipCal(); vm.setYear(year)" aria-label="choose {{year}}">{{(vm.date.selYear||vm.initYear)+year}}</md-button></div></div></div></div>');
-$templateCache.put('components/grouped-bar-chart/grouped-bar-chart.tpl.html','<div class="cd-grouped-bar-chart"><div ng-hide="vm.showData()"><div layout="row" layout-fill layout-align="center center" class="no-data"><span>There are no active tasks.</span></div></div><div ng-show="vm.showData()"><div ng-repeat="group in vm.groupDataKeys"><div layout="row" class="group-item"><div layout="column"><md-icon ng-hide="vm.expandField(group)" md-font-icon="fa fa-caret-right" ng-click="vm.setExpandedField(group)" ng-if="vm.options.subFields"></md-icon><md-icon ng-show="vm.expandField(group)" md-font-icon="fa fa-caret-down" ng-click="vm.setExpandedField(group, true)" ng-if="vm.options.subFields"></md-icon></div><div layout="column" flex><div layout="row" layout-align="space-around none"><div flex="60" layout-align="start center">{{group}}</div><div flex="20">Count: {{vm.groupData[group].length}}</div><div flex="20">{{vm.groupData[group].length*100/vm.totalKeys | number:0}}%</div></div></div></div><div layout="row" flex class="line-color"><div ng-style="{width:vm.groupData[group].length*100/vm.totalKeys + \'%\', \'background\': vm.getColor($index, group)}" class="red-line"></div></div><div class="data-container" ng-show="vm.expandField(group)"><div layout="column" ng-show="vm.expandField(group)" ng-if="vm.options.subFields"><div ng-repeat="el in vm.groupData[group]"><div ng-include="vm.options.extendedTemplate || \'lineChartSingleItemExpanded\'"></div></div></div></div></div><div layout="row" layout-align="end none" class="total">Total Count:{{vm.totalKeys}}</div></div></div><script type="text/ng-template" id="lineChartSingleItemExpanded"><div class="panel" layout="column" layout-align="center none">\n        <div layout="row" layout-align="space-between none" class="data-row">\n            <div ng-repeat="(field, displayText ) in vm.options.subFields">\n                <span class="bold-text">{{displayText}}</span>\n                <span>{{el[field]}}</span>\n            </div>\n        </div>\n    </div></script>');}]);
-})(window, window.angular);;window.cedrusUI={version:{full: "0.2.8"}};
+$templateCache.put('components/grouped-bar-chart/grouped-bar-chart.tpl.html','<div class="cd-grouped-bar-chart"><div ng-hide="vm.showData()"><div layout="row" layout-fill layout-align="center center" class="no-data"><span>There are no active tasks.</span></div></div><div ng-show="vm.showData()"><div ng-repeat="group in vm.groupDataKeys"><div layout="row" class="group-item"><div layout="column"><md-icon ng-hide="vm.expandField(group)" md-font-icon="fa fa-caret-right" ng-click="vm.setExpandedField(group)" ng-if="vm.options.subFields"></md-icon><md-icon ng-show="vm.expandField(group)" md-font-icon="fa fa-caret-down" ng-click="vm.setExpandedField(group, true)" ng-if="vm.options.subFields"></md-icon></div><div layout="column" flex><div layout="row" layout-align="space-around none"><div flex="60" layout-align="start center">{{group}}</div><div flex="20">Count: {{vm.groupData[group].length}}</div><div flex="20">{{vm.groupData[group].length*100/vm.totalKeys | number:0}}%</div></div></div></div><div layout="row" flex class="line-color"><div ng-style="{width:vm.groupData[group].length*100/vm.totalKeys + \'%\', \'background\': vm.getColor($index, group)}" class="red-line"></div></div><div class="data-container" ng-show="vm.expandField(group)"><div layout="column" ng-show="vm.expandField(group)" ng-if="vm.options.subFields"><div ng-repeat="el in vm.groupData[group]"><div ng-include="vm.options.extendedTemplate || \'lineChartSingleItemExpanded\'"></div></div></div></div></div><div layout="row" layout-align="end none" class="total">Total Count:{{vm.totalKeys}}</div></div></div><script type="text/ng-template" id="lineChartSingleItemExpanded"><div class="panel" layout="column" layout-align="center none">\n        <div layout="row" layout-align="space-between none" class="data-row">\n            <div ng-repeat="(field, displayText ) in vm.options.subFields">\n                <span class="bold-text">{{displayText}}</span>\n                <span>{{el[field]}}</span>\n            </div>\n        </div>\n    </div></script>');
+$templateCache.put('components/sidebar-filter/sidebar-filter.tpl.html','<!--implemenation for user provided custom type/templates--><!--change naming to filter-tree, side-filter towards end--><div class="cd-sidebar-filter"><div ng-repeat="group in vm.filterGroups track by $index" class="cdFilterGroupLevel"><div ng-if="!vm.options.isFlat"><md-button ng-click="vm.toggleExpand(group)" class="md-icon-button" aria-label="expand"><md-icon md-font-set="fa" md-font-icon="fa-chevron-right" ng-class="(group.isExpanded  !== false )? \'fa-chevron-down\': \'fa-chevron-right\'"></md-icon></md-button><span>{{ ::vm.processTitle(group, 0) }}</span></div><ul ng-show="group.isExpanded !== false" layout="column" ng-repeat="(filterName, filter) in vm.filters[group.key] track by filterName" class="cdFilterFilterLevel" ng-class="{ cdFilterFlat : vm.options.isFlat}"><li><div><md-button ng-click="vm.toggleExpand(filter)" class="md-icon-button" aria-label="expand"><md-icon md-font-set="fa" md-font-icon="fa-chevron-right" ng-class="(filter.isExpanded  !== false )? \'fa-chevron-down\': \'fa-chevron-right\'"></md-icon></md-button><span>{{::vm.processTitle(filter, 1)}}</span><ul ng-show="filter.isExpanded !== false"><div ng-if="filter.type === \'checkbox\'" ng-include="\'cdCheckBoxFilter\'"></div><div ng-if="filter.type !== \'checkbox\'" ng-include="vm.customFields[filter.type].template"></div></ul></div></li></ul></div></div><script type="text/ng-template" id="cdCheckBoxFilter"><li ng-repeat="(optionName, option) in filter.options track by optionName" class="cdFilterOptionLevel">\n        <md-checkbox ng-model="option.isSelected" ng-change="vm.changeFilter(filter, optionName, $index)" class="md-primary" ng-model-options="{debounce: 250}"\n            aria-label="{{::vm.processTitle(option, 2)}}">\n            <span>{{::vm.processTitle(option, 2)}}</span>\n        </md-checkbox>\n    </li></script>');}]);
+})(window, window.angular);;window.cedrusUI={version:{full: "0.2.9"}};
