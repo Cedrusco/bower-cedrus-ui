@@ -2,7 +2,7 @@
  * Cedrus UI
  * https://github.com/cedrusco/cedrus-ui
  * @license Copyright Cedrus 2015-2016
- * v0.2.11
+ * v0.2.12
  */
 (function( window, angular, undefined ){
 "use strict";
@@ -146,6 +146,7 @@ var CdCharts;
 (function (CdCharts) {
     var CdChartController = (function () {
         function CdChartController($element, $injector) {
+            var _this = this;
             this.$element = $element;
             this.$injector = $injector;
             this.defaultOptions = {
@@ -157,10 +158,29 @@ var CdCharts;
                 'pieChart': 'pieChartService',
                 'lineChart': 'lineChartService'
             };
+            this.implementOverlay = function () {
+                _this.element.select('.custom-overlay').html(_this.options.customHTMLoverlay());
+            };
+            this.drawChart = function (optionsChanged) {
+                if (optionsChanged) {
+                    if (_this.options.customHTMLoverlay)
+                        _this.implementOverlay();
+                    _this.chartService.mergeEvents(_this.options);
+                    _this.chartService.definePosition(_this.options, _this.drawSettings, _this.svg);
+                    _this.chartService.prepareOptions(_this.svg, _this.data, _this.options, _this.drawSettings);
+                }
+                _this.chartService.draw(_this.svg, _this.data, _this.options, _this.drawSettings);
+                _this.options.series.forEach(function (series, index) {
+                    var isVisible = series.visible !== false;
+                    var dataset = isVisible ? _this.data[series['dataset']] : [];
+                    _this.chartService.drawSeries(_this.svg, dataset, _this.options, _this.drawSettings, series, index);
+                });
+            };
             this.options = angular.merge({}, this.defaultOptions, this.options);
             this.width = this.options.width;
             this.height = this.options.height;
-            this.element = d3.select(this.$element[0]).select('svg')
+            this.element = d3.select(this.$element[0]);
+            this.svg = d3.select(this.$element[0]).select('svg')
                 .attr('width', this.width)
                 .attr('height', this.height);
             if (this.chartTypes[this.options.chartType]) {
@@ -182,20 +202,6 @@ var CdCharts;
             var optionsChanged = changeObj.options ? true : false;
             this.drawChart(optionsChanged);
         };
-        CdChartController.prototype.drawChart = function (optionsChanged) {
-            var _this = this;
-            if (optionsChanged) {
-                this.chartService.mergeEvents(this.options);
-                this.chartService.definePosition(this.options, this.drawSettings);
-                this.chartService.prepareOptions(this.element, this.data, this.options, this.drawSettings);
-            }
-            this.chartService.draw(this.element, this.data, this.options, this.drawSettings);
-            this.options.series.forEach(function (series, index) {
-                var isVisible = series.visible !== false;
-                var dataset = isVisible ? _this.data[series['dataset']] : [];
-                _this.chartService.drawSeries(_this.element, dataset, _this.options, _this.drawSettings, series, index);
-            });
-        };
         CdChartController.$inject = ['$element', '$injector'];
         return CdChartController;
     }());
@@ -205,7 +211,7 @@ var CdCharts;
                 data: '<',
                 options: '<'
             };
-            this.template = '<svg></svg>';
+            this.template = '<div><div class="custom-overlay"></div><svg></svg></div>';
             this.controller = CdChartController;
             this.controllerAs = 'vm';
         }
@@ -243,13 +249,13 @@ var CdCharts;
             this.events = events;
         };
         DrawService.prototype.createTooltip = function (svg, options, drawSettings, accessor) {
-            accessor = options.tooltip.customText ? this.createAccessor(options.tooltip.customText, 'tooltip data accessor') : accessor;
+            accessor = (options.tooltip && options.tooltip.customText) ? this.createAccessor(options.tooltip.customText, 'tooltip data accessor') : accessor;
             var tip = d3.tip();
             tip.attr('class', 'cd-chart d3-tip');
             tip.html(function (d) {
                 return accessor(d);
             });
-            if (options.tooltip.position) {
+            if (options.tooltip && options.tooltip.position) {
                 tip.direction(options.tooltip.position);
             }
             ;
@@ -264,6 +270,10 @@ var CdCharts;
             }
             if (typeof prop === 'function') {
                 return function (d, i, n) {
+                    if (propName === 'tooltip data accessor') {
+                        i = d.index;
+                        d = d.data;
+                    }
                     return prop(d, i, n);
                 };
             }
@@ -407,67 +417,6 @@ var CdCalendar;
         .controller('CalendarController', CalendarController);
 })(CdCalendar || (CdCalendar = {}));
 
-var cedrus;
-(function (cedrus) {
-    var ui;
-    (function (ui) {
-        var components;
-        (function (components) {
-            var constant;
-            (function (constant) {
-                'use strict';
-                var ConstantDirective = (function () {
-                    function ConstantDirective($injector) {
-                        var _this = this;
-                        this.$injector = $injector;
-                        this.restrict = 'EA';
-                        this.scope = {
-                            name: '@?',
-                            key: '@?',
-                            replace: '@?'
-                        };
-                        this.link = function (scope, element, attrs) {
-                            var isReplace = (attrs['replace'] === 'true');
-                            var name = attrs['cdConstant'] || attrs['name'];
-                            var key = attrs['key'];
-                            var value;
-                            if (attrs['name'] && !name) {
-                                console.error('constant name is not provided');
-                            }
-                            if (name) {
-                                value = _this.$injector.get(name);
-                                if (key != null && key !== '') {
-                                    value = value[key];
-                                }
-                                else if (attrs['key']) {
-                                    console.warn('constant key is defined without a value');
-                                }
-                                if (isReplace === true) {
-                                    element.replaceWith(value);
-                                }
-                                else {
-                                    element.text(value);
-                                }
-                            }
-                        };
-                    }
-                    ConstantDirective.$inject = ['$injector'];
-                    ConstantDirective.factory = function () {
-                        function instance($injector) {
-                            return new ConstantDirective($injector);
-                        }
-                        instance.$inject = ['$injector'];
-                        return instance;
-                    };
-                    return ConstantDirective;
-                }());
-                angular.module('cedrus.ui.components.constant', [])
-                    .directive('cdConstant', ConstantDirective.factory());
-            })(constant = components.constant || (components.constant = {}));
-        })(components = ui.components || (ui.components = {}));
-    })(ui = cedrus.ui || (cedrus.ui = {}));
-})(cedrus || (cedrus = {}));
-
 var CdCharts;
 (function (CdCharts) {
     var CdBarChartService = (function () {
@@ -606,8 +555,8 @@ var CdCharts;
         };
         CdLineChartService.prototype.definePosition = function (options, drawSettings) {
             var tickSize = options.legend.tickSize || 4;
-            var isTop = options.legend.vPosition !== 'top';
-            var legendShift = options.legend.vPosition !== 'top' ? (this.legendRectSize + this.legendSpacing) : 0;
+            var isTop = options.legend.position !== 'top';
+            var legendShift = options.legend.position !== 'top' ? (this.legendRectSize + this.legendSpacing) : 0;
             var legendVerticalOffset = options.legend.vOffset || 0;
             var legendHorizontalOffset = options.legend.hOffset || 0;
             drawSettings.positionDetails = {
@@ -784,7 +733,7 @@ var CdCharts;
             });
         };
         ;
-        CdPieChartService.prototype.definePosition = function (options, drawSettings) {
+        CdPieChartService.prototype.definePosition = function (options, drawSettings, svg) {
             var radius = Math.min(options.width, options.height) / 2;
             var donutWidth = options.donutWidth || (options.height / 5);
             var innerRadius = radius - donutWidth;
@@ -794,11 +743,39 @@ var CdCharts;
                 innerRadius: radius - donutWidth,
                 pieVerticalShift: options.height / 2,
                 pieHorizontalShift: options.width / 2,
-                legendHorizontalShift: getLegendHorizontalShift(),
-                legendVerticalShift: getLegendHorizontalShift(),
+                legendHorizontalShift: getLegendHorizontalShift(options, svg),
+                legendVerticalShift: getLegendVerticalShift(options, svg),
                 legendWidth: getLegendWidth()
             };
-            function getLegendHorizontalShift() {
+            function getLegendVerticalShift(options, svg) {
+                if (options.legend.position === 'bottom') {
+                    svg.attr('viewBox', '0 0 ' + options.width + ' ' + (20 + options.height + getLegendWidth()));
+                    console.log(getLegendWidth());
+                    return options.height + 20;
+                }
+                if (options.legend.position === 'center')
+                    return getDefaultHorizontalShift();
+                if (options.legend.position === 'right')
+                    return getDefaultHorizontalShift();
+                if (!options.legend.position || options.legend.position === 'left')
+                    return getDefaultHorizontalShift();
+                if (options.legend.position === 'top') {
+                    svg.attr('viewBox', '0 ' + -1 * (20 + options.height) + ' ' + options.width + ' ' + (20 + 2 * options.height));
+                    return -1 * (20 + getLegendWidth());
+                }
+            }
+            function getDefaultHorizontalShift() {
+                return radius - (radius - donutWidth) / Math.sqrt(2);
+            }
+            function getLegendHorizontalShift(options, svg) {
+                if (!options.legend.position || options.legend.position === 'left') {
+                    svg.attr('viewBox', -1 * (getLegendWidth()) + ' 0 ' + ((options.width) + getLegendWidth()) + ' ' + options.height);
+                    return -1 * (getLegendWidth());
+                }
+                if (options.legend.position === 'right') {
+                    svg.attr('viewBox', '0 0 ' + ((options.width) + getLegendWidth()) + ' ' + options.height);
+                    return options.width - 20;
+                }
                 return radius - (radius - donutWidth) / Math.sqrt(2);
             }
             function getLegendWidth() {
@@ -807,6 +784,10 @@ var CdCharts;
         };
         ;
         CdPieChartService.prototype.drawLegend = function (svg, data, options, drawSettings) {
+            if (!options.legend)
+                options.legend = {};
+            if (options.legend.enabled === false)
+                return;
             var legendDiameter = (2 * drawSettings.positionDetails.innerRadius) / Math.sqrt(2);
             var legendUnit = legendDiameter / data.length;
             var legendSpacing = legendUnit / 3;
@@ -824,7 +805,7 @@ var CdCharts;
                 merged.call(this.attachListenters, options.legend.events, options.events.bind);
             merged.select('text')
                 .attr('x', legendRectSize + legendSpacing)
-                .attr('y', legendRectSize - legendSpacing)
+                .attr('y', legendRectSize - legendSpacing / 2)
                 .text(function (d, i, n) {
                 return drawSettings.labelAccessor(d, i, n);
             })
@@ -839,7 +820,7 @@ var CdCharts;
                 .style('stroke', function (d, i, n) { return drawSettings.color(drawSettings.labelAccessor(d, i, n)); });
             merged.attr('transform', function (d, i) {
                 var height = legendRectSize + legendSpacing;
-                var horz = (drawSettings.positionDetails.legendWidth - (widestTextEl + legendRectSize - legendSpacing)) / 2;
+                var horz = (drawSettings.positionDetails.legendWidth - (widestTextEl + legendRectSize)) / 2;
                 var vert = i * height + legendSpacing;
                 return 'translate(' + horz + ',' + vert + ')';
             });
@@ -853,6 +834,8 @@ var CdCharts;
                 .append('path')
                 .merge(path)
                 .call(function (path) {
+                if (!options.animation)
+                    options.animation = {};
                 if (options.animation !== 'none') {
                     var animation = path.transition();
                     if (options.animation.duration)
@@ -878,7 +861,7 @@ var CdCharts;
             drawSettings.labelAccessor = this.createAccessor(options.labelProperty, 'labelProperty');
             if (!options.events)
                 options.events = {};
-            if (options.tooltip.enabled !== false)
+            if ((options.tooltip && options.tooltip.enabled !== false) || !options.tooltip)
                 drawSettings.tip = this.createTooltip(svg, options, drawSettings, drawSettings.countAccessor);
         };
         return CdPieChartService;
@@ -887,6 +870,67 @@ var CdCharts;
     angular.module('cedrus.ui.components.cdChart')
         .factory('pieChartService', function () { return new CdPieChartService(); });
 })(CdCharts || (CdCharts = {}));
+
+var cedrus;
+(function (cedrus) {
+    var ui;
+    (function (ui) {
+        var components;
+        (function (components) {
+            var constant;
+            (function (constant) {
+                'use strict';
+                var ConstantDirective = (function () {
+                    function ConstantDirective($injector) {
+                        var _this = this;
+                        this.$injector = $injector;
+                        this.restrict = 'EA';
+                        this.scope = {
+                            name: '@?',
+                            key: '@?',
+                            replace: '@?'
+                        };
+                        this.link = function (scope, element, attrs) {
+                            var isReplace = (attrs['replace'] === 'true');
+                            var name = attrs['cdConstant'] || attrs['name'];
+                            var key = attrs['key'];
+                            var value;
+                            if (attrs['name'] && !name) {
+                                console.error('constant name is not provided');
+                            }
+                            if (name) {
+                                value = _this.$injector.get(name);
+                                if (key != null && key !== '') {
+                                    value = value[key];
+                                }
+                                else if (attrs['key']) {
+                                    console.warn('constant key is defined without a value');
+                                }
+                                if (isReplace === true) {
+                                    element.replaceWith(value);
+                                }
+                                else {
+                                    element.text(value);
+                                }
+                            }
+                        };
+                    }
+                    ConstantDirective.$inject = ['$injector'];
+                    ConstantDirective.factory = function () {
+                        function instance($injector) {
+                            return new ConstantDirective($injector);
+                        }
+                        instance.$inject = ['$injector'];
+                        return instance;
+                    };
+                    return ConstantDirective;
+                }());
+                angular.module('cedrus.ui.components.constant', [])
+                    .directive('cdConstant', ConstantDirective.factory());
+            })(constant = components.constant || (components.constant = {}));
+        })(components = ui.components || (ui.components = {}));
+    })(ui = cedrus.ui || (cedrus.ui = {}));
+})(cedrus || (cedrus = {}));
 
 var CdgroupedBarChart;
 (function (CdgroupedBarChart) {
@@ -1057,4 +1101,4 @@ function checkboxHandler(currentFilterOption, updatedOption) {
 angular.module('cedrus.ui').run(['$templateCache', function($templateCache) {$templateCache.put('components/calendar/calendar.tpl.html','<div class="container"><div class="hider" ng-click="vm.displayCal()" ng-show="vm.showCal"></div><div class="input-blocker" ng-click="vm.displayCal()" readonly="true"></div><input type="text" class="md-select" ng-model="vm.selection"><div ng-show="vm.showCal" class="panel"><div class="md-whiteframe-2dp"><div class="yearrow" layout="row" layout-align="space-between end"><md-button class="calbtn" ng-click="vm.setYear(-1)" ng-hide="vm.yearSel" aria-label="previous year"><i class="fa fa-chevron-left"></i></md-button><md-button class="calbtn" ng-click="vm.setYear(-12)" ng-show="vm.yearSel" aria-label="go back one page"><i class="fa fa-chevron-left"></i></md-button><md-button class="calbtn yearbtn" ng-click="vm.flipCal()" aria-label="swap between month and year select">{{vm.date.selYear || vm.initYear}}</md-button><md-button class="calbtn" ng-click="vm.setYear(1)" ng-hide="vm.yearSel" aria-label="next year"><i class="fa fa-chevron-right"></i></md-button><md-button class="calbtn" ng-click="vm.setYear(12)" ng-show="vm.yearSel" aria-label="go forward by one page"><i class="fa fa-chevron-right"></i></md-button></div><div layout="row" ng-repeat="monthRow in vm.monthMap" ng-hide="vm.yearSel"><md-button class="calbtn monthSelect" ng-repeat="month in monthRow" ng-click="vm.setMonth(month.value)" aria-label="choose {{month.value}}">{{month.display}}</md-button></div><div layout="row" ng-repeat="yearRow in vm.yearMap" ng-show="vm.yearSel"><md-button class="calbtn yearSelect" ng-repeat="year in yearRow" ng-click="vm.flipCal(); vm.setYear(year)" aria-label="choose {{year}}">{{(vm.date.selYear||vm.initYear)+year}}</md-button></div></div></div></div>');
 $templateCache.put('components/grouped-bar-chart/grouped-bar-chart.tpl.html','<div class="cd-grouped-bar-chart"><div ng-hide="vm.showData()"><div layout="row" layout-fill layout-align="center center" class="no-data"><span>There are no active tasks.</span></div></div><div ng-show="vm.showData()"><div ng-repeat="group in vm.groupDataKeys"><div layout="row" class="group-item"><div layout="column"><md-icon ng-hide="vm.expandField(group)" md-font-icon="fa fa-caret-right" ng-click="vm.setExpandedField(group)" ng-if="vm.options.subFields"></md-icon><md-icon ng-show="vm.expandField(group)" md-font-icon="fa fa-caret-down" ng-click="vm.setExpandedField(group, true)" ng-if="vm.options.subFields"></md-icon></div><div layout="column" flex><div layout="row" layout-align="space-around none"><div flex="60" layout-align="start center">{{group}}</div><div flex="20">Count: {{vm.groupData[group].length}}</div><div flex="20">{{vm.groupData[group].length*100/vm.totalKeys | number:0}}%</div></div></div></div><div layout="row" flex class="line-color"><div ng-style="{width:vm.groupData[group].length*100/vm.totalKeys + \'%\', \'background\': vm.getColor($index, group)}" class="red-line"></div></div><div class="data-container" ng-show="vm.expandField(group)"><div layout="column" ng-show="vm.expandField(group)" ng-if="vm.options.subFields"><div ng-repeat="el in vm.groupData[group]"><div ng-include="vm.options.extendedTemplate || \'lineChartSingleItemExpanded\'"></div></div></div></div></div><div layout="row" layout-align="end none" class="total">Total Count:{{vm.totalKeys}}</div></div></div><script type="text/ng-template" id="lineChartSingleItemExpanded"><div class="panel" layout="column" layout-align="center none">\n        <div layout="row" layout-align="space-between none" class="data-row">\n            <div ng-repeat="(field, displayText ) in vm.options.subFields">\n                <span class="bold-text">{{displayText}}</span>\n                <span>{{el[field]}}</span>\n            </div>\n        </div>\n    </div></script>');
 $templateCache.put('components/sidebar-filter/sidebar-filter.tpl.html','<!--implemenation for user provided custom type/templates--><!--change naming to filter-tree, side-filter towards end--><div class="cd-sidebar-filter"><div ng-repeat="group in vm.filterGroups track by $index" class="cdFilterGroupLevel"><div ng-if="!vm.options.isFlat"><md-button ng-click="vm.toggleExpand(group)" class="md-icon-button" aria-label="expand"><md-icon md-font-set="fa" md-font-icon="fa-chevron-right" ng-class="(group.isExpanded  !== false )? \'fa-chevron-down\': \'fa-chevron-right\'"></md-icon></md-button><span>{{ ::vm.processTitle(group, 0) }}</span></div><ul ng-show="group.isExpanded !== false" layout="column" ng-repeat="(filterName, filter) in vm.filters[group.key] track by filterName" class="cdFilterFilterLevel" ng-class="{ cdFilterFlat : vm.options.isFlat}"><li><div><md-button ng-click="vm.toggleExpand(filter)" class="md-icon-button" aria-label="expand"><md-icon md-font-set="fa" md-font-icon="fa-chevron-right" ng-class="(filter.isExpanded  !== false )? \'fa-chevron-down\': \'fa-chevron-right\'"></md-icon></md-button><span>{{::vm.processTitle(filter, 1)}}</span><ul ng-show="filter.isExpanded !== false"><div ng-if="filter.type === \'checkbox\'" ng-include="\'cdCheckBoxFilter\'"></div><div ng-if="filter.type !== \'checkbox\'" ng-include="vm.customFields[filter.type].template"></div></ul></div></li></ul></div></div><script type="text/ng-template" id="cdCheckBoxFilter"><li ng-repeat="(optionName, option) in filter.options track by optionName" class="cdFilterOptionLevel">\n        <md-checkbox ng-model="option.isSelected" ng-change="vm.changeFilter(filter, optionName, $index)" class="md-primary" ng-model-options="{debounce: 250}"\n            aria-label="{{::vm.processTitle(option, 2)}}">\n            <span>{{::vm.processTitle(option, 2)}}</span>\n        </md-checkbox>\n    </li></script>');}]);
-})(window, window.angular);;window.cedrusUI={version:{full: "0.2.11"}};
+})(window, window.angular);;window.cedrusUI={version:{full: "0.2.12"}};
