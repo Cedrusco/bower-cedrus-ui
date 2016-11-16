@@ -2,7 +2,7 @@
  * Cedrus UI
  * https://github.com/cedrusco/cedrus-ui
  * @license Copyright Cedrus 2015-2016
- * v0.2.12
+ * v0.2.13
  */
 .no-style {
   font-weight: normal;
@@ -83,7 +83,8 @@ cd-calendar .yearrow {
 
 cd-chart .custom-overlay {
   position: relative;
-  float: overlay; }
+  float: overlay;
+  height: 0px; }
 
 .d3-tip {
   line-height: 1;
