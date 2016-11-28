@@ -2,12 +2,12 @@
  * Cedrus UI
  * https://github.com/cedrusco/cedrus-ui
  * @license Copyright Cedrus 2015-2016
- * v0.2.15
+ * v0.2.16
  */
 (function( window, angular, undefined ){
 "use strict";
 
-angular.module('cedrus.ui', ["ngMaterial","ngAnimate","cedrus.ui.core","cedrus.ui.components.calendar","cedrus.ui.components.cdChart","cedrus.ui.components.cdGroupedBarChart","cedrus.ui.components.sidebarFilter","cedrus.ui.components.constant"]);
+angular.module('cedrus.ui', ["ngMaterial","ngAnimate","cedrus.ui.core","cedrus.ui.components.calendar","cedrus.ui.components.cdChart","cedrus.ui.components.cdGroupedBarChart","cedrus.ui.components.sidebarFilter","cedrus.ui.components.constant","cedrus.ui.components.cdWorksheetExport"]);
 var Core;
 (function (Core) {
     angular
@@ -1100,7 +1100,118 @@ function checkboxHandler(currentFilterOption, updatedOption) {
     return currentFilterOption;
 }
 
+var CdWorksheetExport;
+(function (CdWorksheetExport) {
+    var WorksheetExportService = (function () {
+        function WorksheetExportService($filter) {
+            this.$filter = $filter;
+        }
+        WorksheetExportService.prototype.s2ab = function (s) {
+            var buf = new ArrayBuffer(s.length);
+            var view = new Uint8Array(buf);
+            for (var i = 0; i < s.length; ++i) {
+                view[i] = s.charCodeAt(i) & 0xFF;
+            }
+            return buf;
+        };
+        WorksheetExportService.prototype.generateSheet = function (sheetData, name, options) {
+            var worksheet = {};
+            var range = {
+                s: {
+                    c: 0,
+                    r: 0
+                },
+                e: {
+                    c: sheetData.data.length,
+                    r: 0
+                }
+            };
+            for (var H = 0; H < sheetData.headers.length; H++) {
+                var headerCell = {
+                    v: sheetData.headers[H].title,
+                    t: 's'
+                };
+                var headerCellRef = XLSX.utils.encode_cell({ c: H, r: 0 });
+                worksheet[headerCellRef] = headerCell;
+            }
+            for (var R = 0; R < sheetData.data.length; R++) {
+                var cellRow = R + 1;
+                if (range.e.r < cellRow) {
+                    range.e.r = cellRow;
+                }
+                for (var C = 0; C < sheetData.headers.length; C++) {
+                    var cell = {};
+                    var cellRef = XLSX.utils.encode_cell({ c: C, r: cellRow });
+                    if (sheetData.headers[C].type)
+                        cell.t = sheetData.headers[C].type;
+                    cell.v = (sheetData.data[R][sheetData.headers[C].key] !== undefined) ? sheetData.data[R][sheetData.headers[C].key] : 0;
+                    worksheet[cellRef] = cell;
+                }
+            }
+            worksheet['!cols'] = sheetData.headers.map(function (header) {
+                if (!header.columnWidth)
+                    header.columnWidth = options.columnWidth || 15;
+                return {
+                    wch: header.columnWidth
+                };
+            });
+            worksheet['!ref'] = XLSX.utils.encode_range(range);
+            return {
+                sheetName: name,
+                sheet: worksheet
+            };
+        };
+        WorksheetExportService.prototype.generateWorkbook = function (dataSheets, filename, options) {
+            var _this = this;
+            if (!options)
+                options = {};
+            options = angular.extend({
+                bookType: 'xlsx',
+                bookSST: false,
+                type: 'binary'
+            }, options);
+            var workbook = {
+                Sheets: {},
+                Props: {},
+                SSF: {},
+                SheetNames: []
+            };
+            if (!Array.isArray(dataSheets))
+                dataSheets = [dataSheets];
+            dataSheets.forEach(function (sheetData, index) {
+                var sheetName = sheetData.sheetName || 'sheet ' + index;
+                var sheet = _this.generateSheet(sheetData, sheetName, options);
+                workbook.SheetNames.push(sheet.sheetName);
+                workbook.Sheets[sheet.sheetName] = sheet.sheet;
+            });
+            this.exportWorkbook(workbook, options, filename);
+        };
+        WorksheetExportService.prototype.exportWorkbook = function (workbook, options, filename) {
+            workbook = XLSX.write(workbook, options);
+            workbook = this.s2ab(workbook);
+            var blob = new Blob([workbook]);
+            this.saveAs(blob, filename);
+        };
+        WorksheetExportService.prototype.saveAs = function (blob, filename) {
+            var link = document.createElement('a');
+            var url = window.URL.createObjectURL(blob);
+            document.body.appendChild(link);
+            link.setAttribute('style', 'display: none');
+            link.href = url;
+            link.download = filename;
+            link.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(link);
+        };
+        WorksheetExportService.$inject = ['$filter'];
+        return WorksheetExportService;
+    }());
+    angular
+        .module('cedrus.ui.components.cdWorksheetExport', [])
+        .service('cdWorksheetExportService', WorksheetExportService);
+})(CdWorksheetExport || (CdWorksheetExport = {}));
+
 angular.module('cedrus.ui').run(['$templateCache', function($templateCache) {$templateCache.put('components/calendar/calendar.tpl.html','<div class="container"><div class="hider" ng-click="vm.displayCal()" ng-show="vm.showCal"></div><div class="input-blocker" ng-click="vm.displayCal()" readonly="true"></div><input type="text" class="md-select" ng-model="vm.selection"><div ng-show="vm.showCal" class="panel"><div class="md-whiteframe-2dp"><div class="yearrow" layout="row" layout-align="space-between end"><md-button class="calbtn" ng-click="vm.setYear(-1)" ng-hide="vm.yearSel" aria-label="previous year"><i class="fa fa-chevron-left"></i></md-button><md-button class="calbtn" ng-click="vm.setYear(-12)" ng-show="vm.yearSel" aria-label="go back one page"><i class="fa fa-chevron-left"></i></md-button><md-button class="calbtn yearbtn" ng-click="vm.flipCal()" aria-label="swap between month and year select">{{vm.date.selYear || vm.initYear}}</md-button><md-button class="calbtn" ng-click="vm.setYear(1)" ng-hide="vm.yearSel" aria-label="next year"><i class="fa fa-chevron-right"></i></md-button><md-button class="calbtn" ng-click="vm.setYear(12)" ng-show="vm.yearSel" aria-label="go forward by one page"><i class="fa fa-chevron-right"></i></md-button></div><div layout="row" ng-repeat="monthRow in vm.monthMap" ng-hide="vm.yearSel"><md-button class="calbtn monthSelect" ng-repeat="month in monthRow" ng-click="vm.setMonth(month.value)" aria-label="choose {{month.value}}">{{month.display}}</md-button></div><div layout="row" ng-repeat="yearRow in vm.yearMap" ng-show="vm.yearSel"><md-button class="calbtn yearSelect" ng-repeat="year in yearRow" ng-click="vm.flipCal(); vm.setYear(year)" aria-label="choose {{year}}">{{(vm.date.selYear||vm.initYear)+year}}</md-button></div></div></div></div>');
 $templateCache.put('components/grouped-bar-chart/grouped-bar-chart.tpl.html','<div class="cd-grouped-bar-chart"><div ng-hide="vm.showData()"><div layout="row" layout-fill layout-align="center center" class="no-data"><span>There are no active tasks.</span></div></div><div ng-show="vm.showData()"><div ng-repeat="group in vm.groupDataKeys"><div layout="row" class="group-item"><div layout="column"><md-icon ng-hide="vm.expandField(group)" md-font-icon="fa fa-caret-right" ng-click="vm.setExpandedField(group)" ng-if="vm.options.subFields"></md-icon><md-icon ng-show="vm.expandField(group)" md-font-icon="fa fa-caret-down" ng-click="vm.setExpandedField(group, true)" ng-if="vm.options.subFields"></md-icon></div><div layout="column" flex><div layout="row" layout-align="space-around none"><div flex="60" layout-align="start center">{{group}}</div><div flex="20">Count: {{vm.groupData[group].length}}</div><div flex="20">{{vm.groupData[group].length*100/vm.totalKeys | number:0}}%</div></div></div></div><div layout="row" flex class="line-color"><div ng-style="{width:vm.groupData[group].length*100/vm.totalKeys + \'%\', \'background\': vm.getColor($index, group)}" class="red-line"></div></div><div class="data-container" ng-show="vm.expandField(group)"><div layout="column" ng-show="vm.expandField(group)" ng-if="vm.options.subFields"><div ng-repeat="el in vm.groupData[group]"><div ng-include="vm.options.extendedTemplate || \'lineChartSingleItemExpanded\'"></div></div></div></div></div><div layout="row" layout-align="end none" class="total">Total Count:{{vm.totalKeys}}</div></div></div><script type="text/ng-template" id="lineChartSingleItemExpanded"><div class="panel" layout="column" layout-align="center none">\n        <div layout="row" layout-align="space-between none" class="data-row">\n            <div ng-repeat="(field, displayText ) in vm.options.subFields">\n                <span class="bold-text">{{displayText}}</span>\n                <span>{{el[field]}}</span>\n            </div>\n        </div>\n    </div></script>');
 $templateCache.put('components/sidebar-filter/sidebar-filter.tpl.html','<!--implemenation for user provided custom type/templates--><!--change naming to filter-tree, side-filter towards end--><div class="cd-sidebar-filter"><div ng-repeat="group in vm.filterGroups track by $index" class="cdFilterGroupLevel"><div ng-if="!vm.options.isFlat"><md-button ng-click="vm.toggleExpand(group)" class="md-icon-button" aria-label="expand"><md-icon md-font-set="fa" md-font-icon="fa-chevron-right" ng-class="(group.isExpanded  !== false )? \'fa-chevron-down\': \'fa-chevron-right\'"></md-icon></md-button><span>{{ ::vm.processTitle(group, 0) }}</span></div><ul ng-show="group.isExpanded !== false" layout="column" ng-repeat="(filterName, filter) in vm.filters[group.key] track by filterName" class="cdFilterFilterLevel" ng-class="{ cdFilterFlat : vm.options.isFlat}"><li><div><md-button ng-click="vm.toggleExpand(filter)" class="md-icon-button" aria-label="expand"><md-icon md-font-set="fa" md-font-icon="fa-chevron-right" ng-class="(filter.isExpanded  !== false )? \'fa-chevron-down\': \'fa-chevron-right\'"></md-icon></md-button><span>{{::vm.processTitle(filter, 1)}}</span><ul ng-show="filter.isExpanded !== false"><div ng-if="filter.type === \'checkbox\'" ng-include="\'cdCheckBoxFilter\'"></div><div ng-if="filter.type !== \'checkbox\'" ng-include="vm.customFields[filter.type].template"></div></ul></div></li></ul></div></div><script type="text/ng-template" id="cdCheckBoxFilter"><li ng-repeat="(optionName, option) in filter.options track by optionName" class="cdFilterOptionLevel">\n        <md-checkbox ng-model="option.isSelected" ng-change="vm.changeFilter(filter, optionName, $index)" class="md-primary" ng-model-options="{debounce: 250}"\n            aria-label="{{::vm.processTitle(option, 2)}}">\n            <span>{{::vm.processTitle(option, 2)}}</span>\n        </md-checkbox>\n    </li></script>');}]);
-})(window, window.angular);;window.cedrusUI={version:{full: "0.2.15"}};
+})(window, window.angular);;window.cedrusUI={version:{full: "0.2.16"}};
