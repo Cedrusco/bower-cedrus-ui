@@ -2,7 +2,7 @@
  * Cedrus UI
  * https://github.com/cedrusco/cedrus-ui
  * @license Copyright Cedrus 2015-2016
- * v0.2.17
+ * v0.2.18
  */
 .no-style {
   font-weight: normal;
@@ -135,6 +135,52 @@ cd-chart .custom-overlay {
   margin: -4px 0 0 -1px;
   top: 50%;
   left: 100%; }
+
+cd-date-range-picker {
+  margin-top: 21px;
+  margin-right: 24px;
+  max-width: 210px;
+  width: 210px; }
+  cd-date-range-picker .last-datepicker .md-datepicker-input-container {
+    margin-top: 15px; }
+  cd-date-range-picker a, cd-date-range-picker .error-div {
+    margin-top: 5px;
+    margin-right: -12px;
+    float: right;
+    font-size: 12px; }
+  cd-date-range-picker a {
+    cursor: pointer; }
+  cd-date-range-picker .error-div {
+    text-align: right;
+    color: #924806; }
+    cd-date-range-picker .error-div.ng-enter,
+    cd-date-range-picker .error-div span.ng-enter {
+      -webkit-animation: 300ms enter;
+              animation: 300ms enter; }
+    cd-date-range-picker .error-div.ng-leave,
+    cd-date-range-picker .error-div span.ng-leave {
+      -webkit-animation: 50ms leave;
+              animation: 50ms leave; }
+
+@-webkit-keyframes enter {
+  from {
+    opacity: 0; }
+  to {
+    opacity: 1; } }
+
+@keyframes enter {
+  from {
+    opacity: 0; }
+  to {
+    opacity: 1; } }
+
+@-webkit-keyframes leave {
+  to {
+    opacity: 0; } }
+
+@keyframes leave {
+  to {
+    opacity: 0; } }
 
 .cd-grouped-bar-chart .panel {
   background: #f4f4f4;
