@@ -15,3 +15,241 @@
 html,
 body {
   min-height: 100%; }
+
+cd-calendar .calbtn.md-button {
+  border-radius: 50%;
+  height: 36px;
+  width: 48px;
+  min-height: 36px;
+  max-height: 36px;
+  min-width: 48px;
+  max-width: 48px; }
+
+cd-calendar .calbtn.md-button:not([disabled]):hover {
+  border-radius: 50%; }
+
+cd-calendar .hider {
+  position: fixed;
+  padding: 0;
+  float: left;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  cursor: default;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(255, 255, 255, 0);
+  z-index: 900; }
+
+cd-calendar .hider:focus {
+  outline: none;
+  border: 0; }
+
+cd-calendar .input-blocker {
+  position: absolute;
+  min-width: 100%;
+  min-height: 32px;
+  z-index: 2; }
+
+cd-calendar .input-blocker:focus {
+  outline: none;
+  border: 0; }
+
+cd-calendar input {
+  z-index: 1; }
+
+cd-calendar .container {
+  padding: 0 0;
+  margin: 0 0;
+  width: 100%;
+  position: relative; }
+
+cd-calendar .panel {
+  position: absolute;
+  z-index: 1000;
+  background: white;
+  margin-top: 32px;
+  top: -5px; }
+
+cd-calendar .yearbtn {
+  font-size: 1.2em;
+  color: blue; }
+
+cd-calendar .arrowmargin {
+  margin-top: 6px; }
+
+cd-calendar .yearrow {
+  background: lightgray; }
+
+cd-chart .custom-overlay {
+  float: overlay;
+  height: 0;
+  position: relative; }
+
+.d3-tip {
+  line-height: 1;
+  font-weight: bold;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  border-radius: 2px;
+  pointer-events: none; }
+
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+  box-sizing: border-box;
+  display: inline;
+  font-size: 10px;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.8);
+  position: absolute;
+  pointer-events: none; }
+
+/* Northward tooltips */
+.d3-tip.n:after {
+  content: "\25BC";
+  margin: -1px 0 0 0;
+  top: 100%;
+  left: 0;
+  text-align: center; }
+
+/* Eastward tooltips */
+.d3-tip.e:after {
+  content: "\25C0";
+  margin: -4px 0 0 0;
+  top: 50%;
+  left: -8px; }
+
+/* Southward tooltips */
+.d3-tip.s:after {
+  content: "\25B2";
+  margin: 0 0 1px 0;
+  top: -8px;
+  left: 0;
+  text-align: center; }
+
+/* Westward tooltips */
+.d3-tip.w:after {
+  content: "\25B6";
+  margin: -4px 0 0 -1px;
+  top: 50%;
+  left: 100%; }
+
+cd-date-range-picker {
+  margin-right: 24px;
+  margin-top: 21px;
+  max-width: 210px;
+  width: 210px; }
+  cd-date-range-picker .last-datepicker .md-datepicker-input-container {
+    margin-top: 15px; }
+  cd-date-range-picker a,
+  cd-date-range-picker .error-div {
+    float: right;
+    font-size: 12px;
+    margin-right: -12px;
+    margin-top: 5px; }
+  cd-date-range-picker a {
+    cursor: pointer; }
+  cd-date-range-picker .error-div {
+    color: #924806;
+    text-align: right; }
+    cd-date-range-picker .error-div.ng-enter,
+    cd-date-range-picker .error-div span.ng-enter {
+      -webkit-animation: 300ms enter;
+              animation: 300ms enter; }
+    cd-date-range-picker .error-div.ng-leave,
+    cd-date-range-picker .error-div span.ng-leave {
+      -webkit-animation: 50ms leave;
+              animation: 50ms leave; }
+
+@-webkit-keyframes enter {
+  from {
+    opacity: 0; }
+  to {
+    opacity: 1; } }
+
+@keyframes enter {
+  from {
+    opacity: 0; }
+  to {
+    opacity: 1; } }
+
+@-webkit-keyframes leave {
+  to {
+    opacity: 0; } }
+
+@keyframes leave {
+  to {
+    opacity: 0; } }
+
+.cd-grouped-bar-chart .panel {
+  background: #f4f4f4;
+  margin-bottom: 0px;
+  height: 60px;
+  margin: 5px 40px; }
+
+.cd-grouped-bar-chart .header-text {
+  color: blue;
+  font-weight: bold; }
+
+.cd-grouped-bar-chart .no-data {
+  padding-top: 32px; }
+
+.cd-grouped-bar-chart .group-item {
+  padding-top: 10px;
+  font-size: 16px; }
+
+.cd-grouped-bar-chart .line-color {
+  height: 8px;
+  padding-right: 10px;
+  padding-left: 10px; }
+
+.cd-grouped-bar-chart .red-line {
+  height: 8px;
+  background: red; }
+
+.cd-grouped-bar-chart .data-container {
+  max-height: 348px;
+  overflow-y: auto;
+  overflow-x: hidden; }
+
+.cd-grouped-bar-chart .header {
+  font-size: 14px;
+  padding-left: 4px;
+  margin-top: -6px; }
+
+.cd-grouped-bar-chart .date-team {
+  padding-right: 4px;
+  margin-top: -6px; }
+
+.cd-grouped-bar-chart .bold-text {
+  font-weight: bold; }
+
+.cd-grouped-bar-chart .date {
+  font-size: 12px;
+  -ms-flex-item-align: end;
+      align-self: flex-end; }
+
+.cd-grouped-bar-chart .team {
+  font-size: 10px;
+  margin-top: -2px;
+  -ms-flex-item-align: end;
+      align-self: flex-end; }
+
+.cd-grouped-bar-chart .data-row {
+  font-size: 10px;
+  margin-top: 4px;
+  padding-right: 4px;
+  padding-left: 4px; }
+
+.cd-grouped-bar-chart .total {
+  margin-top: 10px; }
+
+.cd-sidebar-filter ul {
+  list-style: none;
+  margin-bottom: 0;
+  margin-top: 0; }
+
+.cd-sidebar-filter .cdFilterFlat {
+  padding-left: 0px; }
