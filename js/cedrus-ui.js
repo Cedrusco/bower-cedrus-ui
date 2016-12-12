@@ -420,8 +420,8 @@ var CdCharts;
                     _this.chartService.drawSeries(_this.svg, dataset, _this.options, _this.drawSettings, index);
                 });
             };
-            this.width = 100;
-            this.height = 100;
+            this.width = this.defaultOptions.width;
+            this.height = this.defaultOptions.height;
             // assign root chart element
             this.element = d3.select(this.$element[0]);
             this.svg = d3.select(this.$element[0]).select('svg')
