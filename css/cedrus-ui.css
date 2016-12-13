@@ -2,7 +2,7 @@
  * Cedrus UI
  * https://github.com/cedrusco/cedrus-ui
  * @license Copyright Cedrus 2016
- * v0.2.23
+ * v0.2.24
  */
 .no-style {
   background-color: inherit;
@@ -82,52 +82,59 @@ cd-calendar .arrowmargin {
 cd-calendar .yearrow {
   background: lightgray; }
 
-cd-date-range-picker {
-  margin-right: 24px;
-  margin-top: 21px;
-  max-width: 210px;
-  width: 210px; }
-  cd-date-range-picker .last-datepicker .md-datepicker-input-container {
-    margin-top: 15px; }
-  cd-date-range-picker a,
-  cd-date-range-picker .error-div {
-    float: right;
-    font-size: 12px;
-    margin-right: -12px;
-    margin-top: 5px; }
-  cd-date-range-picker a {
-    cursor: pointer; }
-  cd-date-range-picker .error-div {
-    color: #924806;
-    text-align: right; }
-    cd-date-range-picker .error-div.ng-enter,
-    cd-date-range-picker .error-div span.ng-enter {
-      -webkit-animation: 300ms enter;
-              animation: 300ms enter; }
-    cd-date-range-picker .error-div.ng-leave,
-    cd-date-range-picker .error-div span.ng-leave {
-      -webkit-animation: 50ms leave;
-              animation: 50ms leave; }
+cd-chart .custom-overlay {
+  float: overlay;
+  height: 0;
+  position: relative; }
 
-@-webkit-keyframes enter {
-  from {
-    opacity: 0; }
-  to {
-    opacity: 1; } }
+.d3-tip {
+  line-height: 1;
+  font-weight: bold;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  border-radius: 2px;
+  pointer-events: none; }
 
-@keyframes enter {
-  from {
-    opacity: 0; }
-  to {
-    opacity: 1; } }
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+  box-sizing: border-box;
+  display: inline;
+  font-size: 10px;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.8);
+  position: absolute;
+  pointer-events: none; }
 
-@-webkit-keyframes leave {
-  to {
-    opacity: 0; } }
+/* Northward tooltips */
+.d3-tip.n:after {
+  content: "\25BC";
+  margin: -1px 0 0 0;
+  top: 100%;
+  left: 0;
+  text-align: center; }
 
-@keyframes leave {
-  to {
-    opacity: 0; } }
+/* Eastward tooltips */
+.d3-tip.e:after {
+  content: "\25C0";
+  margin: -4px 0 0 0;
+  top: 50%;
+  left: -8px; }
+
+/* Southward tooltips */
+.d3-tip.s:after {
+  content: "\25B2";
+  margin: 0 0 1px 0;
+  top: -8px;
+  left: 0;
+  text-align: center; }
+
+/* Westward tooltips */
+.d3-tip.w:after {
+  content: "\25B6";
+  margin: -4px 0 0 -1px;
+  top: 50%;
+  left: 100%; }
 
 .cd-grouped-bar-chart .panel {
   background: #f4f4f4;
@@ -192,6 +199,53 @@ cd-date-range-picker {
 .cd-grouped-bar-chart .total {
   margin-top: 10px; }
 
+cd-date-range-picker {
+  margin-right: 24px;
+  margin-top: 21px;
+  max-width: 210px;
+  width: 210px; }
+  cd-date-range-picker .last-datepicker .md-datepicker-input-container {
+    margin-top: 15px; }
+  cd-date-range-picker a,
+  cd-date-range-picker .error-div {
+    float: right;
+    font-size: 12px;
+    margin-right: -12px;
+    margin-top: 5px; }
+  cd-date-range-picker a {
+    cursor: pointer; }
+  cd-date-range-picker .error-div {
+    color: #924806;
+    text-align: right; }
+    cd-date-range-picker .error-div.ng-enter,
+    cd-date-range-picker .error-div span.ng-enter {
+      -webkit-animation: 300ms enter;
+              animation: 300ms enter; }
+    cd-date-range-picker .error-div.ng-leave,
+    cd-date-range-picker .error-div span.ng-leave {
+      -webkit-animation: 50ms leave;
+              animation: 50ms leave; }
+
+@-webkit-keyframes enter {
+  from {
+    opacity: 0; }
+  to {
+    opacity: 1; } }
+
+@keyframes enter {
+  from {
+    opacity: 0; }
+  to {
+    opacity: 1; } }
+
+@-webkit-keyframes leave {
+  to {
+    opacity: 0; } }
+
+@keyframes leave {
+  to {
+    opacity: 0; } }
+
 .cd-sidebar-filter ul {
   list-style: none;
   margin-bottom: 0;
@@ -199,57 +253,3 @@ cd-date-range-picker {
 
 .cd-sidebar-filter .cdFilterFlat {
   padding-left: 0px; }
-
-cd-chart .custom-overlay {
-  float: overlay;
-  height: 0;
-  position: relative; }
-
-.d3-tip {
-  line-height: 1;
-  font-weight: bold;
-  padding: 12px;
-  background: rgba(0, 0, 0, 0.8);
-  color: #fff;
-  border-radius: 2px;
-  pointer-events: none; }
-
-/* Creates a small triangle extender for the tooltip */
-.d3-tip:after {
-  box-sizing: border-box;
-  display: inline;
-  font-size: 10px;
-  line-height: 1;
-  color: rgba(0, 0, 0, 0.8);
-  position: absolute;
-  pointer-events: none; }
-
-/* Northward tooltips */
-.d3-tip.n:after {
-  content: "\25BC";
-  margin: -1px 0 0 0;
-  top: 100%;
-  left: 0;
-  text-align: center; }
-
-/* Eastward tooltips */
-.d3-tip.e:after {
-  content: "\25C0";
-  margin: -4px 0 0 0;
-  top: 50%;
-  left: -8px; }
-
-/* Southward tooltips */
-.d3-tip.s:after {
-  content: "\25B2";
-  margin: 0 0 1px 0;
-  top: -8px;
-  left: 0;
-  text-align: center; }
-
-/* Westward tooltips */
-.d3-tip.w:after {
-  content: "\25B6";
-  margin: -4px 0 0 -1px;
-  top: 50%;
-  left: 100%; }
