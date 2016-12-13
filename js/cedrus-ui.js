@@ -2,7 +2,7 @@
  * Cedrus UI
  * https://github.com/cedrusco/cedrus-ui
  * @license Copyright Cedrus 2015
- * v0.2.21
+ * vv0.2.21
  */
 (function( window, angular, undefined ){
 "use strict";
@@ -10,7 +10,7 @@
 (function(){
 "use strict";
 
-angular.module('cedrus.ui', ["ng","ngAnimate","ngAria","cedrus.ui.core","cedrus.ui.components.calendar","cedrus.ui.components.cdChart","cedrus.ui.components.constant","cedrus.ui.components.cdDateRangePicker","cedrus.ui.components.cdGroupedBarChart","cedrus.ui.components.sidebarFilter","cedrus.ui.components.constant","cedrus.ui.components.export"]);
+angular.module('cedrus.ui', ["ng","ngAnimate","ngAria","cedrus.ui.core","cedrus.ui.components.calendar","cedrus.ui.components.cdChart","cedrus.ui.components.constant","cedrus.ui.components.cdGroupedBarChart","cedrus.ui.components.cdDateRangePicker","cedrus.ui.components.sidebarFilter","cedrus.ui.components.constant","cedrus.ui.components.export"]);
 })();
 (function(){
 "use strict";
@@ -655,6 +655,30 @@ var cedrus;
 (function(){
 "use strict";
 
+var CdgroupedBarChart;
+(function (CdgroupedBarChart) {
+    var GroupedBarChartComponent = (function () {
+        function GroupedBarChartComponent() {
+            this.bindings = {
+                data: '=',
+                options: '='
+            };
+            this.templateUrl = 'components/grouped-bar-chart/grouped-bar-chart.tpl.html';
+            this.controller = 'groupedBarChartController';
+            this.controllerAs = 'vm';
+            this.transclude = true;
+        }
+        return GroupedBarChartComponent;
+    }());
+    angular
+        .module('cedrus.ui.components.cdGroupedBarChart', [])
+        .component('cdGroupedBarChart', new GroupedBarChartComponent());
+})(CdgroupedBarChart || (CdgroupedBarChart = {}));
+
+})();
+(function(){
+"use strict";
+
 var cedrus;
 (function (cedrus) {
     var ui;
@@ -684,30 +708,6 @@ var cedrus;
         })(components = ui.components || (ui.components = {}));
     })(ui = cedrus.ui || (cedrus.ui = {}));
 })(cedrus || (cedrus = {}));
-
-})();
-(function(){
-"use strict";
-
-var CdgroupedBarChart;
-(function (CdgroupedBarChart) {
-    var GroupedBarChartComponent = (function () {
-        function GroupedBarChartComponent() {
-            this.bindings = {
-                data: '=',
-                options: '='
-            };
-            this.templateUrl = 'components/grouped-bar-chart/grouped-bar-chart.tpl.html';
-            this.controller = 'groupedBarChartController';
-            this.controllerAs = 'vm';
-            this.transclude = true;
-        }
-        return GroupedBarChartComponent;
-    }());
-    angular
-        .module('cedrus.ui.components.cdGroupedBarChart', [])
-        .component('cdGroupedBarChart', new GroupedBarChartComponent());
-})(CdgroupedBarChart || (CdgroupedBarChart = {}));
 
 })();
 (function(){
@@ -1425,6 +1425,83 @@ var cedrus;
 (function(){
 "use strict";
 
+var CdgroupedBarChart;
+(function (CdgroupedBarChart) {
+    var GroupedBarChartController = (function () {
+        function GroupedBarChartController() {
+            this.groupDataKeys = [];
+            this.groupData = {};
+            this.totalKeys = 0;
+            this.expandedField = [];
+            this.groups = {};
+            this.groupKeys = [];
+            this.dataLength = this.data.length;
+        }
+        GroupedBarChartController.prototype.$onInit = function () {
+            (this.options.colors && this.options.colors.list) ? this.colors = this.options.colors.list : this.colors = ['red', 'blue', 'lightblue', 'grey', 'black'];
+            this.generateGroups();
+        };
+        GroupedBarChartController.prototype.getColor = function (index, group) {
+            group = group.toLowerCase();
+            if (this.options.colors && this.options.colors.bindings && this.options.colors.bindings[group]) {
+                return this.options.colors.bindings[group];
+            }
+            return this.colors[index % this.colors.length];
+        };
+        GroupedBarChartController.prototype.expandField = function (group) {
+            return this.expandedField.indexOf(group) !== -1;
+        };
+        GroupedBarChartController.prototype.setExpandedField = function (group, remove) {
+            if (remove) {
+                this.expandedField.splice(this.expandedField.indexOf(group), 1);
+            }
+            else {
+                this.expandedField.push(group);
+            }
+        };
+        GroupedBarChartController.prototype.generateGroups = function () {
+            this.data.forEach(function (dataPoint, idx) {
+                // check to see if for example dueDate field exists on that el
+                if (dataPoint[this.options.groupingField]) {
+                    // if there is a value for dueDate field on that el
+                    var groupingKey;
+                    // check if theres a function to make a custom group name
+                    // if not use the field name
+                    if (this.options.transform) {
+                        groupingKey = this.options.transform(dataPoint);
+                    }
+                    else {
+                        groupingKey = dataPoint[this.options.groupingField];
+                    }
+                    if (!this.groups[groupingKey]) {
+                        this.groups[groupingKey] = [];
+                    }
+                    this.groups[groupingKey].push(dataPoint);
+                    this.totalKeys++;
+                }
+            }.bind(this));
+            this.groupKeys = Object.keys(this.groups);
+            angular.copy(this.groupKeys, this.groupDataKeys);
+            angular.copy(this.groups, this.groupData);
+        };
+        GroupedBarChartController.prototype.showData = function () {
+            if (this.data.length !== this.dataLength) {
+                this.generateGroups();
+            }
+            this.dataLength = this.data.length;
+            return this.data.length !== 0;
+        };
+        return GroupedBarChartController;
+    }());
+    angular
+        .module('cedrus.ui.components.cdGroupedBarChart')
+        .controller('groupedBarChartController', GroupedBarChartController);
+})(CdgroupedBarChart || (CdgroupedBarChart = {}));
+
+})();
+(function(){
+"use strict";
+
 var cedrus;
 (function (cedrus) {
     var ui;
@@ -1534,83 +1611,6 @@ var cedrus;
         })(components = ui.components || (ui.components = {}));
     })(ui = cedrus.ui || (cedrus.ui = {}));
 })(cedrus || (cedrus = {}));
-
-})();
-(function(){
-"use strict";
-
-var CdgroupedBarChart;
-(function (CdgroupedBarChart) {
-    var GroupedBarChartController = (function () {
-        function GroupedBarChartController() {
-            this.groupDataKeys = [];
-            this.groupData = {};
-            this.totalKeys = 0;
-            this.expandedField = [];
-            this.groups = {};
-            this.groupKeys = [];
-            this.dataLength = this.data.length;
-        }
-        GroupedBarChartController.prototype.$onInit = function () {
-            (this.options.colors && this.options.colors.list) ? this.colors = this.options.colors.list : this.colors = ['red', 'blue', 'lightblue', 'grey', 'black'];
-            this.generateGroups();
-        };
-        GroupedBarChartController.prototype.getColor = function (index, group) {
-            group = group.toLowerCase();
-            if (this.options.colors && this.options.colors.bindings && this.options.colors.bindings[group]) {
-                return this.options.colors.bindings[group];
-            }
-            return this.colors[index % this.colors.length];
-        };
-        GroupedBarChartController.prototype.expandField = function (group) {
-            return this.expandedField.indexOf(group) !== -1;
-        };
-        GroupedBarChartController.prototype.setExpandedField = function (group, remove) {
-            if (remove) {
-                this.expandedField.splice(this.expandedField.indexOf(group), 1);
-            }
-            else {
-                this.expandedField.push(group);
-            }
-        };
-        GroupedBarChartController.prototype.generateGroups = function () {
-            this.data.forEach(function (dataPoint, idx) {
-                // check to see if for example dueDate field exists on that el
-                if (dataPoint[this.options.groupingField]) {
-                    // if there is a value for dueDate field on that el
-                    var groupingKey;
-                    // check if theres a function to make a custom group name
-                    // if not use the field name
-                    if (this.options.transform) {
-                        groupingKey = this.options.transform(dataPoint);
-                    }
-                    else {
-                        groupingKey = dataPoint[this.options.groupingField];
-                    }
-                    if (!this.groups[groupingKey]) {
-                        this.groups[groupingKey] = [];
-                    }
-                    this.groups[groupingKey].push(dataPoint);
-                    this.totalKeys++;
-                }
-            }.bind(this));
-            this.groupKeys = Object.keys(this.groups);
-            angular.copy(this.groupKeys, this.groupDataKeys);
-            angular.copy(this.groups, this.groupData);
-        };
-        GroupedBarChartController.prototype.showData = function () {
-            if (this.data.length !== this.dataLength) {
-                this.generateGroups();
-            }
-            this.dataLength = this.data.length;
-            return this.data.length !== 0;
-        };
-        return GroupedBarChartController;
-    }());
-    angular
-        .module('cedrus.ui.components.cdGroupedBarChart')
-        .controller('groupedBarChartController', GroupedBarChartController);
-})(CdgroupedBarChart || (CdgroupedBarChart = {}));
 
 })();
 (function(){
@@ -1898,4 +1898,4 @@ $templateCache.put('components/date-range-picker/date-range-picker.tpl.html','<d
 $templateCache.put('components/grouped-bar-chart/grouped-bar-chart.tpl.html','<div class="cd-grouped-bar-chart"><div ng-hide="vm.showData()"><div layout="row" layout-fill layout-align="center center" class="no-data"><span>There are no active tasks.</span></div></div><div ng-show="vm.showData()"><div ng-repeat="group in vm.groupDataKeys"><div layout="row" class="group-item"><div layout="column"><md-icon ng-hide="vm.expandField(group)" md-font-icon="fa fa-caret-right" ng-click="vm.setExpandedField(group)" ng-if="vm.options.subFields"></md-icon><md-icon ng-show="vm.expandField(group)" md-font-icon="fa fa-caret-down" ng-click="vm.setExpandedField(group, true)" ng-if="vm.options.subFields"></md-icon></div><div layout="column" flex><div layout="row" layout-align="space-around none"><div flex="60" layout-align="start center">{{group}}</div><div flex="20">Count: {{vm.groupData[group].length}}</div><div flex="20">{{vm.groupData[group].length*100/vm.totalKeys | number:0}}%</div></div></div></div><div layout="row" flex class="line-color"><div ng-style="{width:vm.groupData[group].length*100/vm.totalKeys + \'%\', \'background\': vm.getColor($index, group)}" class="red-line"></div></div><div class="data-container" ng-show="vm.expandField(group)"><div layout="column" ng-show="vm.expandField(group)" ng-if="vm.options.subFields"><div ng-repeat="el in vm.groupData[group]"><div ng-include="vm.options.extendedTemplate || \'lineChartSingleItemExpanded\'"></div></div></div></div></div><div layout="row" layout-align="end none" class="total">Total Count:{{vm.totalKeys}}</div></div></div><script type="text/ng-template" id="lineChartSingleItemExpanded"><div class="panel" layout="column" layout-align="center none">\n        <div layout="row" layout-align="space-between none" class="data-row">\n            <div ng-repeat="(field, displayText ) in vm.options.subFields">\n                <span class="bold-text">{{displayText}}</span>\n                <span>{{el[field]}}</span>\n            </div>\n        </div>\n    </div></script>');
 $templateCache.put('components/sidebar-filter/sidebar-filter.tpl.html','<!--implemenation for user provided custom type/templates--><!--change naming to filter-tree, side-filter towards end--><div class="cd-sidebar-filter"><div ng-repeat="group in vm.filterGroups track by $index" ng-class="(vm.groupLevelClasses + (group.customClass ? \' \' + group.customClass : \'\') )"><div ng-if="!vm.options.isFlat"><md-button ng-click="vm.toggleExpand(group)" class="md-icon-button" aria-label="expand"><md-icon md-font-set="fa" md-font-icon="fa-chevron-right" ng-class="(group.isExpanded  !== false )? \'fa-chevron-down\': \'fa-chevron-right\'"></md-icon></md-button><span>{{ ::vm.processTitle(group, 0) }}</span></div><ul ng-show="group.isExpanded !== false" layout="column" ng-repeat="(filterName, filter) in vm.filters[group.key] track by filterName" ng-class="(vm.filterLevelClasses + (filter.customClass ? \' \' + filter.customClass : \'\'))" ng-class="{ cdFilterFlat : vm.options.isFlat}"><li><div><md-button ng-click="vm.toggleExpand(filter)" class="md-icon-button" aria-label="expand"><md-icon md-font-set="fa" md-font-icon="fa-chevron-right" ng-class="(filter.isExpanded  !== false )? \'fa-chevron-down\': \'fa-chevron-right\'"></md-icon></md-button><span>{{::vm.processTitle(filter, 1)}}</span><ul ng-show="filter.isExpanded !== false"><div ng-if="filter.type === \'checkbox\'" ng-include="\'cdCheckBoxFilter\'"></div><div ng-if="filter.type !== \'checkbox\'" ng-include="vm.customFields[filter.type].template"></div></ul></div></li></ul></div></div><script type="text/ng-template" id="cdCheckBoxFilter"><li ng-repeat="(optionName, option) in filter.options track by optionName" ng-class="(vm.optionLevelClasses + (option.customClass ? \' \' + option.customClass : \'\'))">\n        <md-checkbox ng-model="option.isSelected" ng-change="vm.changeFilter(filter, optionName, $index)" class="md-primary" ng-model-options="{debounce: 250}"\n            aria-label="{{::vm.processTitle(option, 2)}}">\n            <span>{{::vm.processTitle(option, 2)}}</span>\n        </md-checkbox>\n    </li></script>');}]);
 })();
-})(window, window.angular);;window.cedrusUI={version:{full: "0.2.21"}};
+})(window, window.angular);;window.cedrusUI={version:{full: "v0.2.21"}};
