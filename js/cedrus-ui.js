@@ -2,19 +2,12 @@
  * Cedrus UI
  * https://github.com/cedrusco/cedrus-ui
  * @license Copyright Cedrus 2016
- * v0.2.22
+ * v0.2.23
  */
 (function( window, angular, undefined ){
 "use strict";
 
-(function(){
-"use strict";
-
-angular.module('cedrus.ui', ["ng","ngAnimate","ngAria","cedrus.ui.core","cedrus.ui.components.calendar","cedrus.ui.components.cdChart","cedrus.ui.components.constant","cedrus.ui.components.cdDateRangePicker","cedrus.ui.components.cdGroupedBarChart","cedrus.ui.components.sidebarFilter","cedrus.ui.components.constant","cedrus.ui.components.export"]);
-})();
-(function(){
-"use strict";
-
+angular.module('cedrus.ui', ["ng","ngAnimate","ngAria","cedrus.ui.core","cedrus.ui.components.calendar","cedrus.ui.components.cdChart","cedrus.ui.components.constant","cedrus.ui.components.cdDateRangePicker","cedrus.ui.components.cdGroupedBarChart","cedrus.ui.components.sidebarFilter","cedrus.ui.components.export"]);
 /**
  * @ngdoc module
  * @name cedrus.ui.core
@@ -26,10 +19,6 @@ var Core;
     angular
         .module('cedrus.ui.core', ['ngMaterial']);
 })(Core || (Core = {}));
-
-})();
-(function(){
-"use strict";
 
 /**
  * @ngdoc module
@@ -58,10 +47,6 @@ var Core;
         .module('cedrus.ui.core')
         .config(cedrusCoreConfigure);
 })(Core || (Core = {}));
-
-})();
-(function(){
-"use strict";
 
 /**
  * @ngdoc module
@@ -101,12 +86,8 @@ var Core;
     }());
     angular
         .module('cedrus.ui.core')
-        .filter('capitalize', Utils.capitalize);
+        .filter('capitalize', function () { return Utils.capitalize; });
 })(Core || (Core = {}));
-
-})();
-(function(){
-"use strict";
 
 /**
  * @ngdoc service
@@ -132,12 +113,8 @@ var Core;
         return CedrusConstantFactory;
     }());
     angular.module('cedrus.ui.core')
-        .factory('$cedrusConstant', function () { return new CedrusConstantFactory(); });
+        .service('$cedrusConstant', CedrusConstantFactory);
 })(Core || (Core = {}));
-
-})();
-(function(){
-"use strict";
 
 /**
  * @ngdoc service
@@ -164,12 +141,8 @@ var Core;
     }());
     angular
         .module('cedrus.ui.core')
-        .filter('normalizeCamelCase', Utils.normalizeCamelCase);
+        .filter('normalizeCamelCase', function () { return Utils.normalizeCamelCase; });
 })(Core || (Core = {}));
-
-})();
-(function(){
-"use strict";
 
 /**
  * @ngdoc service
@@ -233,10 +206,6 @@ var Core;
     angular.module('cedrus.ui.core')
         .provider('$cedrusUIConfig', UIConfigProvider);
 })(Core || (Core = {}));
-
-})();
-(function(){
-"use strict";
 
 /**
  * @ngdoc module
@@ -302,10 +271,6 @@ var Core;
         .factory('$cedrusUtil', function () { return UtilFactory; });
 })(Core || (Core = {}));
 
-})();
-(function(){
-"use strict";
-
 /**
  * @ngdoc module
  * @name cedrus.ui.components.calendar
@@ -357,10 +322,6 @@ var CdCalendar;
         .component('cdCalendar', new CalendarComponent());
 })(CdCalendar || (CdCalendar = {}));
 
-})();
-(function(){
-"use strict";
-
 /**
  * @ngdoc module
  * @name cedrus.ui.components.chart
@@ -407,19 +368,21 @@ var CdCharts;
                 _this.element.select('.custom-overlay').html(_this.options.customHTMLoverlay());
             };
             this.drawChart = function (optionsChanged) {
-                if (optionsChanged) {
-                    if (_this.options.customHTMLoverlay)
-                        _this.implementOverlay();
-                    _this.chartService.mergeEvents(_this.options);
-                    _this.chartService.definePosition(_this.options, _this.drawSettings, _this.svg);
-                    _this.chartService.prepareOptions(_this.svg, _this.data, _this.options, _this.drawSettings);
+                if (_this.chartService) {
+                    if (optionsChanged) {
+                        if (_this.options.customHTMLoverlay)
+                            _this.implementOverlay();
+                        _this.chartService.mergeEvents(_this.options);
+                        _this.chartService.definePosition(_this.options, _this.drawSettings, _this.svg);
+                        _this.chartService.prepareOptions(_this.svg, _this.data, _this.options, _this.drawSettings);
+                    }
+                    _this.chartService.draw(_this.svg, _this.data, _this.options, _this.drawSettings);
+                    _this.options.series.forEach(function (series, index) {
+                        var isVisible = series.visible !== false;
+                        var dataset = isVisible ? _this.data[series.dataset] : [];
+                        _this.chartService.drawSeries(_this.svg, dataset, _this.options, _this.drawSettings, index);
+                    });
                 }
-                _this.chartService.draw(_this.svg, _this.data, _this.options, _this.drawSettings);
-                _this.options.series.forEach(function (series, index) {
-                    var isVisible = series.visible !== false;
-                    var dataset = isVisible ? _this.data[series.dataset] : [];
-                    _this.chartService.drawSeries(_this.svg, dataset, _this.options, _this.drawSettings, index);
-                });
             };
             this.width = this.defaultOptions.width;
             this.height = this.defaultOptions.height;
@@ -434,6 +397,7 @@ var CdCharts;
             this.options = angular.merge({}, this.defaultOptions, this.options);
             this.width = this.options.width;
             this.height = this.options.height;
+            // console.log('onInit', this.options);
             // retrieve appropriate chart service
             if (this.chartTypes[this.options.chartType]) {
                 this.chartService = this.$injector.get(this.chartTypes[this.options.chartType]);
@@ -449,6 +413,7 @@ var CdCharts;
             this.drawChart(true);
         };
         CdChartController.prototype.$onChanges = function (changeObj) {
+            // console.log('onChanges', changeObj);
             var optionsChanged = changeObj.options ? true : false;
             this.drawChart(optionsChanged);
         };
@@ -564,10 +529,12 @@ var CdCharts;
     CdCharts.DrawService = DrawService;
 })(CdCharts || (CdCharts = {}));
 
-})();
-(function(){
-"use strict";
-
+/**
+     * @ngdoc module
+     * @name cedrus.ui.components.constant
+     * @description
+     * Constant module
+     */
 var cedrus;
 (function (cedrus) {
     var ui;
@@ -577,19 +544,35 @@ var cedrus;
             var constant;
             (function (constant) {
                 'use strict';
-                /** This directive simplify accessing the application constants without using a controller.
-                 * e.g.
-                 * Angular defined constants:
-                    angular.module('myApp')
-                        .constant('simple', 'Hello')
-                        .constant('complex', { name: 'Complex Hello' })
-                 * HTML samples:
-                    <span cd-constant="simple"> Show constant </span>
-                    <span cd-constant="simple" replace="true"></span>
-                    <div cd-constant="complex" key="name" replace="false"><div>Other Text</div></div>
-                    <cd-constant name="simple"></cd-constant>
-                    <cd-constant name="complex" key="name" replace="true"></cd-constant>
-                */
+                /**
+                 * @ngdoc directive
+                 * @name cdConstant
+                 * @module cedrus.ui.components.constant
+                 * @description
+                 * This directive simplify accessing the application constants without using a controller. In general, it can extract the information from a defined constant, value, or service.
+                 *
+                 * @usage
+                 * ## Angular Constants sample
+                 * <hljs lang="js">
+                 *  angular.module('myApp')
+                 *      .constant('simple', 'Hello')
+                 *      .constant('complex', { address: {line1: 'Address line 1', line2: 'address line 2' }})
+                 * </hljs>
+                 *
+                 * ## HTML samples:
+                 * <hljs lang="html">
+                 *  # Use as attribute
+                 *  <span cd-constant="simple"> Show constant </span>
+                 *  <span cd-constant="simple" replace="true"></span>
+                 *
+                 *  ## Using attribute, and replace flag
+                 *  <div cd-constant="complex" key="address.line1" replace="false"><div>Other complex Text</div></div>
+                 *
+                 *  ## Use as Element
+                 *  <cd-constant name="simple"></cd-constant>
+                 *  <cd-constant name="complex" key="address.line2" replace="true"></cd-constant>
+                 * </hljs>
+                 */
                 var ConstantDirective = (function () {
                     function ConstantDirective($injector) {
                         var _this = this;
@@ -613,7 +596,13 @@ var cedrus;
                                 console.error('constant name is not provided');
                             }
                             if (name) {
-                                value = _this.$injector.get(name);
+                                if (typeof name === 'string') {
+                                    value = _this.$injector.get(name);
+                                }
+                                else {
+                                    value = name;
+                                }
+                                console.info(value);
                                 if (key != null && key !== '') {
                                     // value = value[key];
                                     // Support deep property reference using the 'key'
@@ -632,7 +621,7 @@ var cedrus;
                                 }
                             }
                         };
-                        // console.log('constant component initilized');
+                        console.log('constant component initilized');
                     }
                     ConstantDirective.$inject = ['$injector'];
                     ConstantDirective.factory = function () {
@@ -650,10 +639,6 @@ var cedrus;
         })(components = ui.components || (ui.components = {}));
     })(ui = cedrus.ui || (cedrus.ui = {}));
 })(cedrus || (cedrus = {}));
-
-})();
-(function(){
-"use strict";
 
 var cedrus;
 (function (cedrus) {
@@ -685,10 +670,6 @@ var cedrus;
     })(ui = cedrus.ui || (cedrus.ui = {}));
 })(cedrus || (cedrus = {}));
 
-})();
-(function(){
-"use strict";
-
 var CdgroupedBarChart;
 (function (CdgroupedBarChart) {
     var GroupedBarChartComponent = (function () {
@@ -708,10 +689,6 @@ var CdgroupedBarChart;
         .module('cedrus.ui.components.cdGroupedBarChart', [])
         .component('cdGroupedBarChart', new GroupedBarChartComponent());
 })(CdgroupedBarChart || (CdgroupedBarChart = {}));
-
-})();
-(function(){
-"use strict";
 
 var cedrus;
 (function (cedrus) {
@@ -740,10 +717,6 @@ var cedrus;
         })(components = ui.components || (ui.components = {}));
     })(ui = cedrus.ui || (cedrus.ui = {}));
 })(cedrus || (cedrus = {}));
-
-})();
-(function(){
-"use strict";
 
 var CdCalendar;
 (function (CdCalendar) {
@@ -810,10 +783,6 @@ var CdCalendar;
         .module('cedrus.ui.components.calendar')
         .controller('CalendarController', CalendarController);
 })(CdCalendar || (CdCalendar = {}));
-
-})();
-(function(){
-"use strict";
 
 var CdCharts;
 (function (CdCharts) {
@@ -884,10 +853,6 @@ var CdCharts;
     angular.module('cedrus.ui.components.cdChart')
         .service('barChartService', CdBarChartService);
 })(CdCharts || (CdCharts = {}));
-
-})();
-(function(){
-"use strict";
 
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -1127,10 +1092,6 @@ var CdCharts;
         .factory('lineChartService', function () { return new CdLineChartService(); });
 })(CdCharts || (CdCharts = {}));
 
-})();
-(function(){
-"use strict";
-
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -1306,125 +1267,6 @@ var CdCharts;
         .factory('pieChartService', function () { return new CdPieChartService(); });
 })(CdCharts || (CdCharts = {}));
 
-})();
-(function(){
-"use strict";
-
-/**
-     * @ngdoc module
-     * @name cedrus.ui.components.constant
-     * @description
-     * Constant module
-     */
-var cedrus;
-(function (cedrus) {
-    var ui;
-    (function (ui) {
-        var components;
-        (function (components) {
-            var constant;
-            (function (constant) {
-                'use strict';
-                /**
-                 * @ngdoc directive
-                 * @name cdConstant
-                 * @module cedrus.ui.components.constant
-                 * @description
-                 * This directive simplify accessing the application constants without using a controller. In general, it can extract the information from a defined constant, value, or service.
-                 *
-                 * @usage
-                 * ## Angular Constants sample
-                 * <hljs lang="js">
-                 *  angular.module('myApp')
-                 *      .constant('simple', 'Hello')
-                 *      .constant('complex', { address: {line1: 'Address line 1', line2: 'address line 2' }})
-                 * </hljs>
-                 *
-                 * ## HTML samples:
-                 * <hljs lang="html">
-                 *  # Use as attribute
-                 *  <span cd-constant="simple"> Show constant </span>
-                 *  <span cd-constant="simple" replace="true"></span>
-                 *
-                 *  ## Using attribute, and replace flag
-                 *  <div cd-constant="complex" key="address.line1" replace="false"><div>Other complex Text</div></div>
-                 *
-                 *  ## Use as Element
-                 *  <cd-constant name="simple"></cd-constant>
-                 *  <cd-constant name="complex" key="address.line2" replace="true"></cd-constant>
-                 * </hljs>
-                 */
-                var ConstantDirective = (function () {
-                    function ConstantDirective($injector) {
-                        var _this = this;
-                        this.$injector = $injector;
-                        this.restrict = 'EA';
-                        // No need to create isolated scope, we will use the attrs to refer to the bindings
-                        this.scope = {
-                            //     /* name of the Constant or service  */
-                            name: '@?',
-                            //     /* attribute key name of complex object that is returned from evaluating the name */
-                            key: '@?',
-                            //     /* Replace the element content : true or false */
-                            replace: '@?'
-                        };
-                        this.link = function (scope, element, attrs) {
-                            var isReplace = (attrs['replace'] === 'true');
-                            var name = attrs['cdConstant'] || attrs['name'];
-                            var key = attrs['key'];
-                            var value;
-                            if (attrs['name'] && !name) {
-                                console.error('constant name is not provided');
-                            }
-                            if (name) {
-                                if (typeof name === 'string') {
-                                    value = _this.$injector.get(name);
-                                }
-                                else {
-                                    value = name;
-                                }
-                                console.info(value);
-                                if (key != null && key !== '') {
-                                    // value = value[key];
-                                    // Support deep property reference using the 'key'
-                                    // e.g. key = x.y.z will be evaluated to value[x][y][z]
-                                    value = key.split('.').reduce(function (obj, i) { return obj[i]; }, value);
-                                }
-                                else if (attrs['key']) {
-                                    console.warn('constant key is defined without a value');
-                                }
-                                // Check if we need to replace the element
-                                if (isReplace === true) {
-                                    element.replaceWith(value);
-                                }
-                                else {
-                                    element.text(value);
-                                }
-                            }
-                        };
-                        console.log('constant component initilized');
-                    }
-                    ConstantDirective.$inject = ['$injector'];
-                    ConstantDirective.factory = function () {
-                        function instance($injector) {
-                            return new ConstantDirective($injector);
-                        }
-                        instance.$inject = ['$injector'];
-                        return instance;
-                    };
-                    return ConstantDirective;
-                }());
-                angular.module('cedrus.ui.components.constant', [])
-                    .directive('cdConstant', ConstantDirective.factory());
-            })(constant = components.constant || (components.constant = {}));
-        })(components = ui.components || (ui.components = {}));
-    })(ui = cedrus.ui || (cedrus.ui = {}));
-})(cedrus || (cedrus = {}));
-
-})();
-(function(){
-"use strict";
-
 var cedrus;
 (function (cedrus) {
     var ui;
@@ -1535,10 +1377,6 @@ var cedrus;
     })(ui = cedrus.ui || (cedrus.ui = {}));
 })(cedrus || (cedrus = {}));
 
-})();
-(function(){
-"use strict";
-
 var CdgroupedBarChart;
 (function (CdgroupedBarChart) {
     var GroupedBarChartController = (function () {
@@ -1611,10 +1449,6 @@ var CdgroupedBarChart;
         .module('cedrus.ui.components.cdGroupedBarChart')
         .controller('groupedBarChartController', GroupedBarChartController);
 })(CdgroupedBarChart || (CdgroupedBarChart = {}));
-
-})();
-(function(){
-"use strict";
 
 var cedrus;
 (function (cedrus) {
@@ -1741,10 +1575,6 @@ function checkboxHandler(currentFilterOption, updatedOption) {
     }
     return currentFilterOption;
 }
-
-})();
-(function(){
-"use strict";
 
 /**
  * @ngdoc module
@@ -1889,13 +1719,8 @@ var CdWorksheetExport;
         .service('cdWorksheetExportService', WorksheetExportService);
 })(CdWorksheetExport || (CdWorksheetExport = {}));
 
-})();
-(function(){
-"use strict";
-
 angular.module('cedrus.ui').run(['$templateCache', function($templateCache) {$templateCache.put('components/calendar/calendar.tpl.html','<div class="container"><div class="hider" ng-click="vm.displayCal()" ng-show="vm.showCal"></div><div class="input-blocker" ng-click="vm.displayCal()" readonly="true"></div><input type="text" class="md-select" ng-model="vm.selection"><div ng-show="vm.showCal" class="panel"><div class="md-whiteframe-2dp"><div class="yearrow" layout="row" layout-align="space-between end"><md-button class="calbtn" ng-click="vm.setYear(-1)" ng-hide="vm.yearSel" aria-label="previous year"><i class="fa fa-chevron-left"></i></md-button><md-button class="calbtn" ng-click="vm.setYear(-12)" ng-show="vm.yearSel" aria-label="go back one page"><i class="fa fa-chevron-left"></i></md-button><md-button class="calbtn yearbtn" ng-click="vm.flipCal()" aria-label="swap between month and year select">{{vm.date.selYear || vm.initYear}}</md-button><md-button class="calbtn" ng-click="vm.setYear(1)" ng-hide="vm.yearSel" aria-label="next year"><i class="fa fa-chevron-right"></i></md-button><md-button class="calbtn" ng-click="vm.setYear(12)" ng-show="vm.yearSel" aria-label="go forward by one page"><i class="fa fa-chevron-right"></i></md-button></div><div layout="row" ng-repeat="monthRow in vm.monthMap" ng-hide="vm.yearSel"><md-button class="calbtn monthSelect" ng-repeat="month in monthRow" ng-click="vm.setMonth(month.value)" aria-label="choose {{month.value}}">{{month.display}}</md-button></div><div layout="row" ng-repeat="yearRow in vm.yearMap" ng-show="vm.yearSel"><md-button class="calbtn yearSelect" ng-repeat="year in yearRow" ng-click="vm.flipCal(); vm.setYear(year)" aria-label="choose {{year}}">{{(vm.date.selYear||vm.initYear)+year}}</md-button></div></div></div></div>');
 $templateCache.put('components/date-range-picker/date-range-picker.tpl.html','<div ng-form="vm.form"><md-datepicker name="startDate" ng-model="vm.startDate" ng-change="vm.onDatepickerChange(vm.startDate, vm.endDate)" ng-required="vm.shouldRequire(vm.useDateRange, vm.endDate)" md-placeholder="{{ vm.startPlaceholder(vm.useDateRange) }}" md-min-date="vm.options.startDate.min || false" md-max-date="vm.endDate || vm.options.startDate.max || false" class="startDate"></md-datepicker><md-datepicker ng-show="vm.useDateRange" name="endDate" ng-model="vm.endDate" ng-change="vm.onDatepickerChange(vm.startDate, vm.endDate)" ng-required="vm.shouldRequire(vm.useDateRange, vm.startDate)" md-placeholder="{{ vm.options.endDate.placeholder }}" md-min-date="vm.startDate" md-max-date="vm.options.endDate.max" class="last-datepicker"></md-datepicker></div><a ng-click="vm.toggleDateRange(vm.form)">{{ vm.getToggleDateRangeText(vm.useDateRange) }}</a><div class="error-div" ng-if="vm.useDateRange && vm.form.$error && vm.parentFormSubmitted"><span ng-if="vm.form.startDate.$error.required">{{ vm.options.errorMessages.startRequired }} </span><span ng-if="vm.form.endDate.$error.required">{{ vm.options.errorMessages.endRequired }}</span></div>');
 $templateCache.put('components/grouped-bar-chart/grouped-bar-chart.tpl.html','<div class="cd-grouped-bar-chart"><div ng-hide="vm.showData()"><div layout="row" layout-fill layout-align="center center" class="no-data"><span>There are no active tasks.</span></div></div><div ng-show="vm.showData()"><div ng-repeat="group in vm.groupDataKeys"><div layout="row" class="group-item"><div layout="column"><md-icon ng-hide="vm.expandField(group)" md-font-icon="fa fa-caret-right" ng-click="vm.setExpandedField(group)" ng-if="vm.options.subFields"></md-icon><md-icon ng-show="vm.expandField(group)" md-font-icon="fa fa-caret-down" ng-click="vm.setExpandedField(group, true)" ng-if="vm.options.subFields"></md-icon></div><div layout="column" flex><div layout="row" layout-align="space-around none"><div flex="60" layout-align="start center">{{group}}</div><div flex="20">Count: {{vm.groupData[group].length}}</div><div flex="20">{{vm.groupData[group].length*100/vm.totalKeys | number:0}}%</div></div></div></div><div layout="row" flex class="line-color"><div ng-style="{width:vm.groupData[group].length*100/vm.totalKeys + \'%\', \'background\': vm.getColor($index, group)}" class="red-line"></div></div><div class="data-container" ng-show="vm.expandField(group)"><div layout="column" ng-show="vm.expandField(group)" ng-if="vm.options.subFields"><div ng-repeat="el in vm.groupData[group]"><div ng-include="vm.options.extendedTemplate || \'lineChartSingleItemExpanded\'"></div></div></div></div></div><div layout="row" layout-align="end none" class="total">Total Count:{{vm.totalKeys}}</div></div></div><script type="text/ng-template" id="lineChartSingleItemExpanded"><div class="panel" layout="column" layout-align="center none">\n        <div layout="row" layout-align="space-between none" class="data-row">\n            <div ng-repeat="(field, displayText ) in vm.options.subFields">\n                <span class="bold-text">{{displayText}}</span>\n                <span>{{el[field]}}</span>\n            </div>\n        </div>\n    </div></script>');
 $templateCache.put('components/sidebar-filter/sidebar-filter.tpl.html','<!--implemenation for user provided custom type/templates--><!--change naming to filter-tree, side-filter towards end--><div class="cd-sidebar-filter"><div ng-repeat="group in vm.filterGroups track by $index" ng-class="(vm.groupLevelClasses + (group.customClass ? \' \' + group.customClass : \'\') )"><div ng-if="!vm.options.isFlat"><md-button ng-click="vm.toggleExpand(group)" class="md-icon-button" aria-label="expand"><md-icon md-font-set="fa" md-font-icon="fa-chevron-right" ng-class="(group.isExpanded  !== false )? \'fa-chevron-down\': \'fa-chevron-right\'"></md-icon></md-button><span>{{ ::vm.processTitle(group, 0) }}</span></div><ul ng-show="group.isExpanded !== false" layout="column" ng-repeat="(filterName, filter) in vm.filters[group.key] track by filterName" ng-class="(vm.filterLevelClasses + (filter.customClass ? \' \' + filter.customClass : \'\'))" ng-class="{ cdFilterFlat : vm.options.isFlat}"><li><div><md-button ng-click="vm.toggleExpand(filter)" class="md-icon-button" aria-label="expand"><md-icon md-font-set="fa" md-font-icon="fa-chevron-right" ng-class="(filter.isExpanded  !== false )? \'fa-chevron-down\': \'fa-chevron-right\'"></md-icon></md-button><span>{{::vm.processTitle(filter, 1)}}</span><ul ng-show="filter.isExpanded !== false"><div ng-if="filter.type === \'checkbox\'" ng-include="\'cdCheckBoxFilter\'"></div><div ng-if="filter.type !== \'checkbox\'" ng-include="vm.customFields[filter.type].template"></div></ul></div></li></ul></div></div><script type="text/ng-template" id="cdCheckBoxFilter"><li ng-repeat="(optionName, option) in filter.options track by optionName" ng-class="(vm.optionLevelClasses + (option.customClass ? \' \' + option.customClass : \'\'))">\n        <md-checkbox ng-model="option.isSelected" ng-change="vm.changeFilter(filter, optionName, $index)" class="md-primary" ng-model-options="{debounce: 250}"\n            aria-label="{{::vm.processTitle(option, 2)}}">\n            <span>{{::vm.processTitle(option, 2)}}</span>\n        </md-checkbox>\n    </li></script>');}]);
-})();
-})(window, window.angular);;window.cedrusUI={version:{full: "0.2.22"}};
+})(window, window.angular);;window.cedrusUI={version:{full: "0.2.23"}};
