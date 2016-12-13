@@ -136,6 +136,53 @@ cd-chart .custom-overlay {
   top: 50%;
   left: 100%; }
 
+cd-date-range-picker {
+  margin-right: 24px;
+  margin-top: 21px;
+  max-width: 210px;
+  width: 210px; }
+  cd-date-range-picker .last-datepicker .md-datepicker-input-container {
+    margin-top: 15px; }
+  cd-date-range-picker a,
+  cd-date-range-picker .error-div {
+    float: right;
+    font-size: 12px;
+    margin-right: -12px;
+    margin-top: 5px; }
+  cd-date-range-picker a {
+    cursor: pointer; }
+  cd-date-range-picker .error-div {
+    color: #924806;
+    text-align: right; }
+    cd-date-range-picker .error-div.ng-enter,
+    cd-date-range-picker .error-div span.ng-enter {
+      -webkit-animation: 300ms enter;
+              animation: 300ms enter; }
+    cd-date-range-picker .error-div.ng-leave,
+    cd-date-range-picker .error-div span.ng-leave {
+      -webkit-animation: 50ms leave;
+              animation: 50ms leave; }
+
+@-webkit-keyframes enter {
+  from {
+    opacity: 0; }
+  to {
+    opacity: 1; } }
+
+@keyframes enter {
+  from {
+    opacity: 0; }
+  to {
+    opacity: 1; } }
+
+@-webkit-keyframes leave {
+  to {
+    opacity: 0; } }
+
+@keyframes leave {
+  to {
+    opacity: 0; } }
+
 .cd-grouped-bar-chart .panel {
   background: #f4f4f4;
   margin-bottom: 0px;
@@ -206,50 +253,3 @@ cd-chart .custom-overlay {
 
 .cd-sidebar-filter .cdFilterFlat {
   padding-left: 0px; }
-
-cd-date-range-picker {
-  margin-right: 24px;
-  margin-top: 21px;
-  max-width: 210px;
-  width: 210px; }
-  cd-date-range-picker .last-datepicker .md-datepicker-input-container {
-    margin-top: 15px; }
-  cd-date-range-picker a,
-  cd-date-range-picker .error-div {
-    float: right;
-    font-size: 12px;
-    margin-right: -12px;
-    margin-top: 5px; }
-  cd-date-range-picker a {
-    cursor: pointer; }
-  cd-date-range-picker .error-div {
-    color: #924806;
-    text-align: right; }
-    cd-date-range-picker .error-div.ng-enter,
-    cd-date-range-picker .error-div span.ng-enter {
-      -webkit-animation: 300ms enter;
-              animation: 300ms enter; }
-    cd-date-range-picker .error-div.ng-leave,
-    cd-date-range-picker .error-div span.ng-leave {
-      -webkit-animation: 50ms leave;
-              animation: 50ms leave; }
-
-@-webkit-keyframes enter {
-  from {
-    opacity: 0; }
-  to {
-    opacity: 1; } }
-
-@keyframes enter {
-  from {
-    opacity: 0; }
-  to {
-    opacity: 1; } }
-
-@-webkit-keyframes leave {
-  to {
-    opacity: 0; } }
-
-@keyframes leave {
-  to {
-    opacity: 0; } }
