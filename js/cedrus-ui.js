@@ -10,7 +10,7 @@
 (function(){
 "use strict";
 
-angular.module('cedrus.ui', ["ng","ngAnimate","ngAria","cedrus.ui.core","cedrus.ui.components.calendar","cedrus.ui.components.cdChart","cedrus.ui.components.cdDateRangePicker","cedrus.ui.components.cdGroupedBarChart","cedrus.ui.components.sidebarFilter","cedrus.ui.components.constant","cedrus.ui.components.constant","cedrus.ui.components.export"]);
+angular.module('cedrus.ui', ["ng","ngAnimate","ngAria","cedrus.ui.core","cedrus.ui.components.calendar","cedrus.ui.components.cdChart","cedrus.ui.components.constant","cedrus.ui.components.cdDateRangePicker","cedrus.ui.components.cdGroupedBarChart","cedrus.ui.components.sidebarFilter","cedrus.ui.components.constant","cedrus.ui.components.export"]);
 })();
 (function(){
 "use strict";
@@ -386,6 +386,7 @@ var CdCalendar;
 var CdCharts;
 (function (CdCharts) {
     var CdChartController = (function () {
+        /* @ngInject */
         function CdChartController($element, $injector) {
             var _this = this;
             this.$element = $element;
@@ -562,6 +563,93 @@ var CdCharts;
     }());
     CdCharts.DrawService = DrawService;
 })(CdCharts || (CdCharts = {}));
+
+})();
+(function(){
+"use strict";
+
+var cedrus;
+(function (cedrus) {
+    var ui;
+    (function (ui) {
+        var components;
+        (function (components) {
+            var constant;
+            (function (constant) {
+                'use strict';
+                /** This directive simplify accessing the application constants without using a controller.
+                 * e.g.
+                 * Angular defined constants:
+                    angular.module('myApp')
+                        .constant('simple', 'Hello')
+                        .constant('complex', { name: 'Complex Hello' })
+                 * HTML samples:
+                    <span cd-constant="simple"> Show constant </span>
+                    <span cd-constant="simple" replace="true"></span>
+                    <div cd-constant="complex" key="name" replace="false"><div>Other Text</div></div>
+                    <cd-constant name="simple"></cd-constant>
+                    <cd-constant name="complex" key="name" replace="true"></cd-constant>
+                */
+                var ConstantDirective = (function () {
+                    function ConstantDirective($injector) {
+                        var _this = this;
+                        this.$injector = $injector;
+                        this.restrict = 'EA';
+                        // No need to create isolated scope, we will use the attrs to refer to the bindings
+                        this.scope = {
+                            //     /* name of the Constant or service  */
+                            name: '@?',
+                            //     /* attribute key name of complex object that is returned from evaluating the name */
+                            key: '@?',
+                            //     /* Replace the element content : true or false */
+                            replace: '@?'
+                        };
+                        this.link = function (scope, element, attrs) {
+                            var isReplace = (attrs['replace'] === 'true');
+                            var name = attrs['cdConstant'] || attrs['name'];
+                            var key = attrs['key'];
+                            var value;
+                            if (attrs['name'] && !name) {
+                                console.error('constant name is not provided');
+                            }
+                            if (name) {
+                                value = _this.$injector.get(name);
+                                if (key != null && key !== '') {
+                                    // value = value[key];
+                                    // Support deep property reference using the 'key'
+                                    // e.g. key = x.y.z will be evaluated to value[x][y][z]
+                                    value = key.split('.').reduce(function (obj, i) { return obj[i]; }, value);
+                                }
+                                else if (attrs['key']) {
+                                    console.warn('constant key is defined without a value');
+                                }
+                                // Check if we need to replace the element
+                                if (isReplace === true) {
+                                    element.replaceWith(value);
+                                }
+                                else {
+                                    element.text(value);
+                                }
+                            }
+                        };
+                        // console.log('constant component initilized');
+                    }
+                    ConstantDirective.$inject = ['$injector'];
+                    ConstantDirective.factory = function () {
+                        function instance($injector) {
+                            return new ConstantDirective($injector);
+                        }
+                        instance.$inject = ['$injector'];
+                        return instance;
+                    };
+                    return ConstantDirective;
+                }());
+                angular.module('cedrus.ui.components.constant', [])
+                    .directive('cdConstant', ConstantDirective.factory());
+            })(constant = components.constant || (components.constant = {}));
+        })(components = ui.components || (ui.components = {}));
+    })(ui = cedrus.ui || (cedrus.ui = {}));
+})(cedrus || (cedrus = {}));
 
 })();
 (function(){
@@ -1217,93 +1305,6 @@ var CdCharts;
     angular.module('cedrus.ui.components.cdChart')
         .factory('pieChartService', function () { return new CdPieChartService(); });
 })(CdCharts || (CdCharts = {}));
-
-})();
-(function(){
-"use strict";
-
-var cedrus;
-(function (cedrus) {
-    var ui;
-    (function (ui) {
-        var components;
-        (function (components) {
-            var constant;
-            (function (constant) {
-                'use strict';
-                /** This directive simplify accessing the application constants without using a controller.
-                 * e.g.
-                 * Angular defined constants:
-                    angular.module('myApp')
-                        .constant('simple', 'Hello')
-                        .constant('complex', { name: 'Complex Hello' })
-                 * HTML samples:
-                    <span cd-constant="simple"> Show constant </span>
-                    <span cd-constant="simple" replace="true"></span>
-                    <div cd-constant="complex" key="name" replace="false"><div>Other Text</div></div>
-                    <cd-constant name="simple"></cd-constant>
-                    <cd-constant name="complex" key="name" replace="true"></cd-constant>
-                */
-                var ConstantDirective = (function () {
-                    function ConstantDirective($injector) {
-                        var _this = this;
-                        this.$injector = $injector;
-                        this.restrict = 'EA';
-                        // No need to create isolated scope, we will use the attrs to refer to the bindings
-                        this.scope = {
-                            //     /* name of the Constant or service  */
-                            name: '@?',
-                            //     /* attribute key name of complex object that is returned from evaluating the name */
-                            key: '@?',
-                            //     /* Replace the element content : true or false */
-                            replace: '@?'
-                        };
-                        this.link = function (scope, element, attrs) {
-                            var isReplace = (attrs['replace'] === 'true');
-                            var name = attrs['cdConstant'] || attrs['name'];
-                            var key = attrs['key'];
-                            var value;
-                            if (attrs['name'] && !name) {
-                                console.error('constant name is not provided');
-                            }
-                            if (name) {
-                                value = _this.$injector.get(name);
-                                if (key != null && key !== '') {
-                                    // value = value[key];
-                                    // Support deep property reference using the 'key'
-                                    // e.g. key = x.y.z will be evaluated to value[x][y][z]
-                                    value = key.split('.').reduce(function (obj, i) { return obj[i]; }, value);
-                                }
-                                else if (attrs['key']) {
-                                    console.warn('constant key is defined without a value');
-                                }
-                                // Check if we need to replace the element
-                                if (isReplace === true) {
-                                    element.replaceWith(value);
-                                }
-                                else {
-                                    element.text(value);
-                                }
-                            }
-                        };
-                        // console.log('constant component initilized');
-                    }
-                    ConstantDirective.$inject = ['$injector'];
-                    ConstantDirective.factory = function () {
-                        function instance($injector) {
-                            return new ConstantDirective($injector);
-                        }
-                        instance.$inject = ['$injector'];
-                        return instance;
-                    };
-                    return ConstantDirective;
-                }());
-                angular.module('cedrus.ui.components.constant', [])
-                    .directive('cdConstant', ConstantDirective.factory());
-            })(constant = components.constant || (components.constant = {}));
-        })(components = ui.components || (ui.components = {}));
-    })(ui = cedrus.ui || (cedrus.ui = {}));
-})(cedrus || (cedrus = {}));
 
 })();
 (function(){
