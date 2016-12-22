@@ -2,12 +2,12 @@
  * Cedrus UI
  * https://github.com/cedrusco/cedrus-ui
  * @license Copyright Cedrus 2016
- * v0.2.27
+ * v0.2.28
  */
 (function( window, angular, undefined ){
 "use strict";
 
-angular.module('cedrus.ui', ["ng","ngAnimate","ngAria","cedrus.ui.core","cedrus.ui.components.calendar","cedrus.ui.components.cdChart","cedrus.ui.components.constant","cedrus.ui.components.dateRangePicker","cedrus.ui.components.cdGroupedBarChart","cedrus.ui.components.sidebarFilter","cedrus.ui.components.export"]);
+angular.module('cedrus.ui', ["ng","ngAnimate","ngAria","cedrus.ui.core","cedrus.ui.components.calendar","cedrus.ui.components.chart","cedrus.ui.components.constant","cedrus.ui.components.dateRangePicker","cedrus.ui.components.cdGroupedBarChart","cedrus.ui.components.sidebarFilter","cedrus.ui.components.export"]);
 /**
  * @ngdoc module
  * @name cedrus.ui.core
@@ -325,25 +325,195 @@ var CdCalendar;
 /**
  * @ngdoc module
  * @name cedrus.ui.components.chart
- *
  * @description
- * Chart module
+ *
+ * Module allows users to create updating and animated d3 charts with minimal configuration
+*/
+/**
+ * @ngdoc type
+ * @name chartOptions
+ * @module cedrus.ui.components.chart
+ * @property {Object} legend Optional object holding information about a chart legend
+ * @property {boolean} legend.enabled Optional indicating whether a legend should be displayed, defaults to true
+ * @property {Object} legend.events Optional object each property holds an event handler keyed to its event name. Events bound to chart legend
+ * @property {boolean} legend.events.bind Optional property indicating whether users wishes the events 'this' context to be bound to its triggering element
+ * @property {number} legend.tickSize Optional Number indicating the size of a graph axis's tickSize
+ * @property {string} legend.position Optional String can be 'top' | 'bottom' | 'center' | 'left' | 'right' indicating position of the graph legend
+ * @property {number} legend.vOffset Optional Number to indicate a vertical pixel shift of the legend
+ * @property {number} legend.hOffset Optional Number to indicate a horizontal pixel shift of the legend
+ * @property {string} chartType Required: 'custom' | 'lineChart' | 'pieChart' | 'barChart'  If chartType is 'custom' the user must also provide a customChartService
+ * @property {string} customChartService string to point to name of a user created custom chart service.  Required if user selected 'custom' as his/her chart type.
+ * @property {number} width Optional property indicating the desired width of the svg element defaults to 360px
+ * @property {number} height Optional property indicating the desired height of the svg element defaults to 360px
+ * @property {object} events Optional property Optional object each property holds an event handler keyed to its event name. Events bound to chart data elements
+ * @property {boolean} events.bind Optional property indicating whether users wishes the events 'this' context to be bound to its triggering element
+ * @property {object} animation Optional object where user can adjust animation options
+ * @property {number} animation.duration Optional property setting the duration in ms of the d3 transition animation
+ * @property {number} animation.delay Optional property setting the time delay in ms from when an animation is triggered and when it starts
+ * @property {string} animation.type set type to 'none' to turn off animation which is active by default more types forthcoming
+ * @property {object} tooltip Optional object containing tooltip configuration tooltip currently unsupported in multi series graphs
+ * @property {boolean} tooltip.enabled Optional property.  Tooltip enabled by default and will display y axis values
+ * @property {string} tooltip.position 'n' | 's' | 'e' | 'w' | 'nw' | 'ne' | 'sw' | 'se' Optional property sets tooltip position in relative to its trigger element using compass directions
+ * @property {string|PropertyFunction} tooltip.customText Optional Property function returned string sets the innerHTML of the tooltip
+ * @property {function}  customHTMLoverlay returns the inner text for a custom HTML Div element that will overlay the chart
+ * @property {object[]} series Array containing settings for each individual series
  */
 /**
-     * @ngdoc directive
-     * @name cdChart
-     * @module cedrus.ui.components.chart
-     * @description
-     * Chart
-     *
-     * @usage
-     * - As Element
-     *
-     * <hljs lang="html">
-     *  <cd-chart options="vm.options" data="vm.data">
-     *  </cd-chart>
-     * </hljs>
-     */
+ * @ngdoc type
+ * @name PropertyFunction
+ * @module cedrus.ui.components.chart
+ * @description A Property Function is used to access and provide a string or numerical value from a datum to be used in d3 rendering
+ *
+ * Example
+ *  <hljs lang="js">
+ * (d,i,n) => { return d['value'] * 1.5 }
+ * </hljs>
+ *
+ *  This function acts as a callback to access the 'value' property on datum 'd', modifies and returns it so it can be used in d3 rendering.
+ * callback PropertyFunction
+ * @param {*} d Datum associacted with a given element, used in d3 callback pattern
+ * @param {number} i Index of the datum
+ * @param {Object} n Object containing collection of nodes associacted with a datum and a collection of it's parents
+ * @return {string|number} Returns a string or numerical value that d3 will use in rendering
+ */
+/**
+ * @ngdoc directive
+ * @name cdChart
+ * @module cedrus.ui.components.chart
+ *
+ * @description
+ *
+ * Component holds the controller for the cdChart component and calls on the chart service specifed in the
+ * configuration to create the d3 chart
+ */
+/**
+ * @ngdoc service
+ * @name DrawService
+ * @module cedrus.ui.components.chart
+ * @description
+ *
+ * DrawService is the base class from which all DrawServices (lineChart, pieChart, ...etc) are derived.
+ *
+ */
+/**
+ * @ngdoc property
+ * @name DrawService#padding
+ * @description
+ * The baseline padding in pixels for all charts. Usually used to pad the space between a chart and it's axis
+ * @returns {Number}
+ */
+/**
+ * @ngdoc property
+ * @name DrawService#legendRectSize
+ * @description
+ * Defines the width and height in pixels of the rectangle element (square) in a chart's legend
+ * @returns {Number}
+ */
+/**
+ * @ngdoc property
+ * @name DrawService#legendSpacing
+ * @description
+ * Defines the vertical and horizontal spacing between two legend rectangles
+ * @returns {Number}
+ */
+/**
+ * @ngdoc method
+ * @name DrawService#mergeEvents
+ * @description
+ * d3's event system allows for only a single handler to fire for any givent event
+ * mergeEvents combines the excution of mulitple handles into a single function
+ * @param {Object} options The user passed configuration stored as options
+ */
+/**
+ * @ngdoc method
+ * @name DrawService#createTooltip
+ * @description
+ * creates the tooltip element using d3-tip and adds the tooltip events to the hashmap of events to be merged in the mergeEvents method
+ * @param {Object} svg The base svg element of the chart
+ * @param {Object} options The user passed configuration stored as options
+ * @param {Object} drawSettings The drawSettings property containing option values that vary between execution
+ * @param {Object} accessor Default accessor to extract the displayed value that will be displayed in the tooltip
+ */
+/**
+ * @ngdoc method
+ * @name DrawService#createAccessor
+ * @param {string|PropertyFunction} prop string property or property function used to access a value within a given datapoint
+ * @param {string} propName Name of the property being set x accessor y accessor etc
+ * @return {PropertyFunction} returns a PropertyFunction that will be called within d3;
+ * @description
+ * used to create an accessor function.  Accessors are functions use the chart dataset to extract values
+ * to deterimine positions on chart or to compute display text or values on a chart
+ *
+ * prop as a string will be converted to a function:
+ * <hljs lang="js">
+ * this.createAccessor('name','xAccessor')
+ * </hljs>
+ * will return (d,i,n) => d['name'];
+ *
+ * Prop as a Propertyfunction will remain as a function
+ * <hljs lang="js">
+ * var accessor = (d,i,n) => {return d['name'] + ' is the ' + i + ' datum in the list of ' n.}
+ * </hljs>
+ *
+ * will return (d,i,n) => {return d['name'] + ' is the ' + i + ' datum in the list of ' n.}
+*/
+/**
+ * @ngdoc method
+ * @name DrawService#attachListenters
+ * @param {Object} selection D3 selection object
+ * @param {Object} eventMap Hashmap keyed by DOM event names to arrays of corresponding event handlers
+ * @param {Boolean} bind Optional boolean indicating whether the event handler's 'this' context should be bound to its attached element
+ * @description Attach intended event handlers to the provided d3 selection.  D3's event handling typically only allows for a single handler
+ * for a given event on an element. This method allows mulitple handlers to be invoked by providing a wrapper function for multiple handlers
+ * */
+/**
+ * @ngdoc method
+ * @name DrawService#prepareOptions
+ * @param {Object} svg The base svg element of the chart
+ * @param {Object[]} data Array containg that data that is being graphed
+ * @param {Object} options The user passed configuration stored as options
+ * @param {Object} drawSettings The drawSettings property containing option values that vary between executions
+ * @description Abstract Service Method: Used to populate fields on the drawSettings object to define options that vary between executions
+ */
+/**
+ * @ngdoc method
+ * @name DrawService#draw
+ * @param {Object} svg The base svg element of the chart
+ * @param {Object[]} data Array containg that data that is being graphed
+ * @param {Object} options The user passed configuration stored as options
+ * @param {Object} drawSettings The drawSettings property containing option values that vary between executions
+ * @description Abstract Service Method: Used to Draw the non-series specific element of the chart such as the legend,
+ * axes and sizing the svg element and viewport
+ */
+/**
+ * @ngdoc method
+ * @name DrawService#drawSeries
+ * @param {Object} svg The base svg element of the chart
+ * @param {Object[]} data Array containg that data that is being graphed
+ * @param {Object} options The user passed configuration stored as options
+ * @param {Object} drawSettings The drawSettings property containing option values that vary between executions
+ * @param {Number} index The index within options.series to access the dataset for the series being drawn
+ * @description Abstract Service Method: Used to Draw each series of a graph in both single series or multi-series chart
+ */
+/**
+ * @ngdoc method
+ * @name DrawService#drawSeries
+ * @param {Object} svg The base svg element of the chart
+ * @param {Object[]} data Array containg that data that is being graphed
+ * @param {Object} options The user passed configuration stored as options
+ * @param {Object} drawSettings The drawSettings property containing option values that vary between executions
+ * @param {Number} index The index within options.series to access the dataset for the series being drawn
+ * @description Abstract Service Method: Used to Draw each series of a graph in both single series or multi-series chart
+ */
+/**
+ * @ngdoc method
+ * @name DrawService#definePosition
+ * @param {Object} options The user passed configuration stored as options
+ * @param {Object} drawSettings The drawSettings property containing option values that vary between executions
+ * @param {Object} svg The base svg element of the chart
+ * @description Abstract Service Method: Used within a service to make calculations that determine position details within a
+ * particular chart such as the horizontal and vertical offsets for the graph legend, or padding for the x-scale and y scale functions
+ */
 var CdCharts;
 (function (CdCharts) {
     var CdChartController = (function () {
@@ -377,11 +547,13 @@ var CdCharts;
                         _this.chartService.prepareOptions(_this.svg, _this.data, _this.options, _this.drawSettings);
                     }
                     _this.chartService.draw(_this.svg, _this.data, _this.options, _this.drawSettings);
-                    _this.options.series.forEach(function (series, index) {
-                        var isVisible = series.visible !== false;
-                        var dataset = isVisible ? _this.data[series.dataset] : [];
-                        _this.chartService.drawSeries(_this.svg, dataset, _this.options, _this.drawSettings, index);
-                    });
+                    if (_this.options.series) {
+                        _this.options.series.forEach(function (series, index) {
+                            var isVisible = series.visible !== false;
+                            var dataset = isVisible ? _this.data[series.dataset] : [];
+                            _this.chartService.drawSeries(_this.svg, dataset, _this.options, _this.drawSettings, index);
+                        });
+                    }
                 }
             };
             this.width = this.defaultOptions.width;
@@ -436,12 +608,13 @@ var CdCharts;
         return CdChartComponent;
     }());
     angular
-        .module('cedrus.ui.components.cdChart', [])
+        .module('cedrus.ui.components.chart', [])
         .component('cdChart', new CdChartComponent());
     var DrawService = (function () {
         function DrawService() {
+            var _this = this;
             /**  padding level in pixels */
-            this.padding = 20;
+            this.padding = 40;
             this.legendRectSize = 12;
             this.legendSpacing = 4;
             /** scale map for future use with user provided scale option */
@@ -449,6 +622,25 @@ var CdCharts;
                 linear: d3.scaleLinear(),
                 log: d3.scaleLog(),
                 ordinal: d3.scaleOrdinal()
+            };
+            this.createTooltip = function (svg, options, drawSettings, accessor) {
+                // accessor = (options.tooltip && options.tooltip.customText) ? this.createAccessor(options.tooltip.customText, 'tooltip data accessor') : this.createAccessor('displayedValue', 'tooltip data accessor');
+                accessor = _this.createAccessor('displayedValue', 'tooltip data accessor');
+                var tip = d3.tip();
+                tip.attr('class', 'cd-chart d3-tip');
+                tip.html(function (d) {
+                    return accessor(d);
+                });
+                if (options.tooltip && options.tooltip.position) {
+                    tip.direction(options.tooltip.position);
+                }
+                ;
+                svg.call(tip);
+                _this.events['mouseover'].push(tip.show);
+                _this.events['mouseout'].push(tip.hide);
+                if (!drawSettings.tip)
+                    drawSettings.tip = tip;
+                return tip;
             };
         }
         DrawService.prototype.mergeEvents = function (options) {
@@ -468,22 +660,6 @@ var CdCharts;
                 });
             this.events = events;
         };
-        DrawService.prototype.createTooltip = function (svg, options, drawSettings, accessor) {
-            accessor = (options.tooltip && options.tooltip.customText) ? this.createAccessor(options.tooltip.customText, 'tooltip data accessor') : accessor;
-            var tip = d3.tip();
-            tip.attr('class', 'cd-chart d3-tip');
-            tip.html(function (d) {
-                return accessor(d);
-            });
-            if (options.tooltip && options.tooltip.position) {
-                tip.direction(options.tooltip.position);
-            }
-            ;
-            svg.call(tip);
-            drawSettings.tip = tip;
-            this.events['mouseover'].push(drawSettings.tip.show);
-            this.events['mouseout'].push(drawSettings.tip.hide);
-        };
         /**  Wrapper function to access or process user provided data */
         DrawService.prototype.createAccessor = function (prop, propName) {
             if (!prop) {
@@ -492,12 +668,8 @@ var CdCharts;
             // If the property is a function
             if (typeof prop === 'function') {
                 return function (d, i, n) {
-                    if (propName === 'tooltip data accessor') {
-                        if (!i)
-                            i = d.index;
-                        if (d.data)
-                            d = d.data;
-                    }
+                    if (d.data)
+                        d = d.data;
                     return prop(d, i, n);
                 };
             }
@@ -507,11 +679,6 @@ var CdCharts;
                 };
             }
         };
-        /*
-            bars
-                .call(this.attachListers, options.events)
-        */
-        /** Attach a series of event handlers to a selection using and event map */
         DrawService.prototype.attachListenters = function (selection, eventMap, bind) {
             var eventTitles = Object.keys(eventMap);
             eventTitles.forEach(function (eventName) {
@@ -520,7 +687,7 @@ var CdCharts;
                     var currentEvent = angular.copy(d3.event);
                     if (!Array.isArray(eventMap[eventName]))
                         eventMap[eventName] = [eventMap[eventName]];
-                    eventMap[eventName].forEach(function (event) {
+                    eventMap[eventName].forEach(function (event, eventNum) {
                         bind ? event.bind(_this)(d, i, n, currentEvent) : event(d, i, n, currentEvent);
                     });
                 });
@@ -862,7 +1029,7 @@ var CdCharts;
         return CdBarChartService;
     }());
     CdCharts.CdBarChartService = CdBarChartService;
-    angular.module('cedrus.ui.components.cdChart')
+    angular.module('cedrus.ui.components.chart')
         .service('barChartService', CdBarChartService);
 })(CdCharts || (CdCharts = {}));
 
@@ -884,15 +1051,19 @@ var CdCharts;
             if (options.axes.y.max)
                 return options.axes.y.max;
             var yMaxes = [];
-            options.series.forEach(function (series, index) {
-                var seriesAccessor = series.yKey ? _this.createAccessor(series.yKey) : yAccessor;
-                if (series.visible === false)
-                    return;
-                var dataset = data[series.dataset];
-                yMaxes.push(d3.max(dataset, function (datum) {
-                    return parseInt(seriesAccessor(datum));
-                }));
-            });
+            if (options.series) {
+                options.series.forEach(function (series, index) {
+                    var seriesAccessor = series.yKey ? _this.createAccessor(series.yKey) : yAccessor;
+                    if (series.visible === false)
+                        return;
+                    var dataset = data[series.dataset];
+                    if (dataset) {
+                        yMaxes.push(d3.max(dataset, function (datum) {
+                            return parseInt(seriesAccessor(datum));
+                        }));
+                    }
+                });
+            }
             return d3.max(yMaxes);
         };
         /** Retrieve yAxis minimum from the dataset(s) to allow for approrpiate scaling */
@@ -904,14 +1075,18 @@ var CdCharts;
             if (options.axes.max)
                 return options.axes.max;
             var xMaxes = [];
-            options.series.forEach(function (series, index) {
-                if (series.visible === false)
-                    return;
-                var dataset = data[series.dataset];
-                xMaxes.push(d3.max(dataset, function (datum) {
-                    return xAccessor(datum);
-                }));
-            });
+            if (options.series) {
+                options.series.forEach(function (series, index) {
+                    if (series.visible === false)
+                        return;
+                    var dataset = data[series.dataset];
+                    if (dataset) {
+                        xMaxes.push(d3.max(dataset, function (datum) {
+                            return xAccessor(datum);
+                        }));
+                    }
+                });
+            }
             return d3.max(xMaxes);
         };
         /** Retrieve xAxis minimum from the dataset(s) to allow for approrpiate scaling */
@@ -919,14 +1094,19 @@ var CdCharts;
             if (options.axes.min)
                 return options.axes.min;
             var xMins = [];
-            options.series.forEach(function (series, index) {
-                if (series.visible === false)
-                    return;
-                var dataset = data[series.dataset];
-                xMins.push(d3.min(dataset, function (datum) {
-                    return xAccessor(datum);
-                }));
-            });
+            if (options.series) {
+                options.series.forEach(function (series, index) {
+                    if (series.visible === false)
+                        return;
+                    var dataset = data[series.dataset];
+                    // console.log('dataset value:', dataset);
+                    if (dataset) {
+                        xMins.push(d3.min(dataset, function (datum) {
+                            return xAccessor(datum);
+                        }));
+                    }
+                });
+            }
             return d3.min(xMins);
         };
         /** create axis generator based on provided options */
@@ -946,57 +1126,88 @@ var CdCharts;
             }
             return axisGen;
         };
-        CdLineChartService.prototype.definePosition = function (options, drawSettings) {
+        CdLineChartService.prototype.definePosition = function (options, drawSettings, svg) {
             var tickSize = options.legend.tickSize || 4;
-            var isTop = options.legend.position !== 'top';
-            var legendShift = options.legend.position !== 'top' ? (this.legendRectSize + this.legendSpacing) : 0;
+            var legendPosition = options.legend.position ? options.legend.position : 'bottom';
+            var isTop = 0;
             var legendVerticalOffset = options.legend.vOffset || 0;
             var legendHorizontalOffset = options.legend.hOffset || 0;
             drawSettings.positionDetails = {
-                xAxisVerticalShift: (options.height - this.padding + tickSize - legendShift),
+                xAxisVerticalShift: (options.height - this.padding + tickSize),
                 xAxisHorizontalShift: 0,
                 yAxisVerticalShift: 0,
                 yAxisHorizontalShift: this.padding,
-                legendHorizontalShift: legendHorizontalOffset,
-                legendVerticalShift: (isTop ? (options.height - this.legendRectSize) : 0) + legendVerticalOffset,
+                legendHorizontalShift: legendHorizontalOffset + this.padding,
+                legendVerticalShift: getLegendPositions(legendPosition, this) + legendVerticalOffset,
                 yRangeMax: isTop ? this.padding : (this.legendRectSize + this.legendSpacing)
             };
+            function getLegendPositions(legendPosition, service) {
+                // If the legend is positioned at bottom shift the legend down the height of the svg (we'll expand the viewport to include the legend)
+                var legendVerticalShift = 0;
+                var legendHeight = getLegendHeight(service);
+                if (legendPosition === 'bottom') {
+                    svg.attr('viewBox', '0 0 ' + options.width + ' ' + (options.height + legendHeight));
+                    legendVerticalShift = options.height;
+                }
+                if (legendPosition === 'top') {
+                    legendVerticalShift = -1 * legendHeight;
+                    svg.attr('viewBox', '0 ' + legendVerticalShift + ' ' + options.width + ' ' + (options.height + legendHeight));
+                }
+                return legendVerticalShift;
+            }
+            function getLegendHeight(service) {
+                var legendUnit = service.legendRectSize + service.legendSpacing * 2;
+                return (options.series) ? options.series.length * legendUnit : legendUnit;
+            }
         };
         CdLineChartService.prototype.drawLegend = function (legend, data, options, drawSettings) {
-            var _this = this;
+            legend
+                .attr('transform', function () { return 'translate(' + drawSettings.positionDetails.legendHorizontalShift + ',' + drawSettings.positionDetails.legendVerticalShift + ')'; });
             if (options.legend.enabled === false) {
                 legend.selectAll('.legend').attr('style', 'display: none;');
                 return;
             }
+            var legendUnit = this.legendRectSize + this.legendSpacing * 2;
+            // Re-position legend
             legend = legend.selectAll('.legend')
-                .attr('style', 'display: block;')
+                .attr('style', 'display: block;');
+            legend
                 .data(options.series)
                 .enter()
                 .append('g')
                 .attr('class', 'legend')
                 .attr('transform', function (d, i, nodes) {
-                var increment = (options.width - _this.padding * 2) / options.series.length;
-                var offset = _this.padding * 2 + (i * increment);
-                return 'translate(' + offset + ',' + 0 + ')';
+                // shift the legend blocks
+                var increment = legendUnit;
+                var yOffset = (i * increment);
+                var xOffset = 0;
+                return 'translate(' + xOffset + ',' + yOffset + ')';
             });
             if (options.legend.events) {
                 legend.call(this.attachListenters, options.legend.events, options.events.bind);
             }
-            legend.append('rect')
-                .attr('width', this.legendRectSize)
-                .attr('height', this.legendRectSize)
-                .attr('stroke', function (d) {
-                return d.color;
-            })
-                .attr('fill', function (d) {
-                return d.color;
-            })
-                .attr('x', 0)
-                .attr('y', 0);
-            legend.append('text')
-                .text(function (d) { return d.label; })
-                .attr('x', (this.legendRectSize + this.legendSpacing))
-                .attr('y', this.legendRectSize / 1.5);
+            legend
+                .call(addLegendRectangles, this)
+                .call(addLegendText, this);
+            function addLegendText(legend, service) {
+                legend.append('text')
+                    .text(function (d) { return d.label; })
+                    .attr('x', service.legendRectSize + 2 * service.legendSpacing)
+                    .attr('y', service.legendRectSize);
+            }
+            function addLegendRectangles(legend, service) {
+                legend.append('rect')
+                    .attr('width', service.legendRectSize)
+                    .attr('height', service.legendRectSize)
+                    .attr('stroke', function (d) {
+                    return d.color;
+                })
+                    .attr('fill', function (d) {
+                    return d.color;
+                })
+                    .attr('x', 0)
+                    .attr('y', 0);
+            }
         };
         CdLineChartService.prototype.prepareOptions = function (svg, data, options, drawSettings) {
             var xAxis = drawSettings.xAxis ? svg.select('.xAxis') : svg.append('g').attr('class', 'xAxis');
@@ -1014,7 +1225,7 @@ var CdCharts;
                     return 'translate(' + horz + ',' + vert + ')';
                 });
             }
-            // collect line paths and dots (if present) for each series 
+            // collect line paths and dots (if present) for each series
             if (!drawSettings.dotSets)
                 drawSettings.dotSets = [];
             if (!drawSettings.paths)
@@ -1028,42 +1239,61 @@ var CdCharts;
             });
         };
         CdLineChartService.prototype.drawSeries = function (svg, dataset, options, drawSettings, index) {
+            // grab series info from the options object
             var series = options.series[index];
             var xAccessor = drawSettings.xAccessor;
-            drawSettings.yAccessor = series.yKey ? this.createAccessor(series.yKey) : drawSettings.yAccessor;
-            // function short circuits if this dataset has been explicitly flagged as invisible
-            // define dataset based on the provided pointer
-            var lines = svg.select('.line' + index);
-            if (options.animation.type !== 'none') {
-                lines = lines.transition();
-                if (options.animation.delay)
-                    lines.delay(options.animation.delay);
-                if (options.animation.duration)
-                    lines.duration(options.animation.duration);
-            }
-            lines.attr('d', drawSettings.lineFun()(dataset))
-                .attr('stroke', series.color)
-                .attr('fill', 'none');
+            // adjust the yAccessor based on the given series
+            var yAccessor = series.yKey ? this.createAccessor(series.yKey) : drawSettings.yAccessor;
+            if (options.tooltip.enabled !== false)
+                drawSettings.tip = this.createTooltip(svg, options, drawSettings, yAccessor);
+            var line = svg.select('.line' + index);
+            if (options.animation.type !== 'none')
+                line = line.transition();
+            line
+                .call(animateLine)
+                .call(styleLine);
             var circles = svg.select('.circles' + index)
                 .selectAll('circle')
                 .data(dataset);
-            var newCircles = circles.enter()
+            // remove old dots
+            circles.exit().remove();
+            // combine dataset to include only remaining selection
+            circles = circles.enter()
                 .append('circle')
                 .merge(circles);
-            newCircles.attr('cx', function (d, i, n) {
-                return drawSettings.xScale(drawSettings.xAccessor(d, i, n));
-            })
-                .attr('cy', function (d, i, n) { return drawSettings.yScale(drawSettings.yAccessor(d, i, n)); })
-                .attr('fill', series.color)
-                .attr('stroke', series.color)
-                .attr('r', series.dotSize || 2.5)
+            circles
+                .call(styleCircles)
                 .call(this.attachListenters, this.events, options.events.bind);
-            if (series.drawDots === false) {
-                newCircles
-                    .attr('style', 'opacity:0;')
-                    .attr('r', 5);
+            function animateLine(line) {
+                if (options.animation.type === 'none')
+                    return;
+                line
+                    .delay(options.animation.delay || 0)
+                    .duration(options.animation.duration || 250);
             }
-            circles.exit().remove();
+            function styleLine(line) {
+                line
+                    .attr('d', drawSettings.lineFun(yAccessor)(dataset))
+                    .attr('stroke', series.color)
+                    .attr('fill', 'none');
+            }
+            function styleCircles(circles) {
+                circles
+                    .attr('cx', function (d, i, n) {
+                    return drawSettings.xScale(drawSettings.xAccessor(d, i, n));
+                })
+                    .attr('cy', function (d, i, n) { return drawSettings.yScale(yAccessor(d, i, n)); })
+                    .attr('fill', series.color)
+                    .attr('stroke', series.color)
+                    .attr('r', series.dotSize || 2.5);
+                // make dot invisible if they are not drawn for this series
+                // dots remain present to provide an anchor for the tooltip
+                if (series.drawDots === false) {
+                    circles
+                        .attr('style', 'opacity:0;')
+                        .attr('r', 5);
+                }
+            }
         };
         CdLineChartService.prototype.draw = function (svg, data, options, drawSettings) {
             if (!options.events)
@@ -1071,8 +1301,6 @@ var CdCharts;
             // define your wrapper function for x and y axes
             drawSettings.xAccessor = this.createAccessor(options.axes.x.key, 'xAxis accessor');
             drawSettings.yAccessor = this.createAccessor(options.axes.y.key, 'yAxis accessor');
-            if (options.tooltip.enabled !== false)
-                drawSettings.tip = this.createTooltip(svg, options, drawSettings, drawSettings.yAccessor);
             // draw legend
             this.drawLegend(drawSettings.legend, data, options, drawSettings);
             // get minimum and maximum from provided options or calculate
@@ -1088,19 +1316,19 @@ var CdCharts;
             drawSettings.yScale = yScaleType
                 .domain([yMin, yMax])
                 .range([drawSettings.positionDetails.xAxisVerticalShift, drawSettings.positionDetails.yRangeMax]);
-            drawSettings.lineFun = function () { return d3.line()
+            drawSettings.lineFun = function (yAccessor) { return d3.line()
                 .x(function (d, i, n) { return drawSettings.xScale(drawSettings.xAccessor(d, i, n)); })
-                .y(function (d, i, n) { return drawSettings.yScale(drawSettings.yAccessor(d, i, n)); })
+                .y(function (d, i, n) { return drawSettings.yScale(yAccessor(d, i, n)); })
                 .curve(d3.curveLinear); }; // should add future option to define curve type
             var xAxisGen = this.createAxes(drawSettings.xScale, options, 'bottom', 'x');
             var yAxisGen = this.createAxes(drawSettings.yScale, options, 'left', 'y');
-            svg.select('.xAxis').call(xAxisGen);
-            svg.select('.yAxis').call(yAxisGen);
+            var xAxis = svg.select('.xAxis').call(xAxisGen);
+            var yAxis = svg.select('.yAxis').call(yAxisGen);
         };
         return CdLineChartService;
     }(CdCharts.DrawService));
     CdCharts.CdLineChartService = CdLineChartService;
-    angular.module('cedrus.ui.components.cdChart')
+    angular.module('cedrus.ui.components.chart')
         .factory('lineChartService', function () { return new CdLineChartService(); });
 })(CdCharts || (CdCharts = {}));
 
@@ -1205,33 +1433,43 @@ var CdCharts;
             legendEnter.append('rect');
             legendEnter.append('text');
             // merge the incoming elements with leftover elements
-            var merged = legendEnter.merge(legend);
+            legend = legendEnter.merge(legend);
             // decorate text and rect properties of the nested elements
             var widestTextEl;
             if (options.legend.events)
-                merged.call(this.attachListenters, options.legend.events, options.events.bind);
-            merged.select('text')
-                .attr('x', legendRectSize + legendSpacing)
-                .attr('y', legendRectSize - legendSpacing / 2)
-                .text(function (d, i, n) {
-                return drawSettings.labelAccessor(d, i, n);
-            })
-                .call(function (selection) {
-                var textEls = selection._groups[0];
-                widestTextEl = d3.max(textEls, function (textEl) { return textEl.getBBox().width; });
-            });
-            merged.select('rect')
-                .attr('width', legendRectSize)
-                .attr('height', legendRectSize)
-                .style('fill', function (d, i, n) { return drawSettings.color(drawSettings.labelAccessor(d, i, n)); })
-                .style('stroke', function (d, i, n) { return drawSettings.color(drawSettings.labelAccessor(d, i, n)); });
-            // (re)center location of legend 'g' elements
-            merged.attr('transform', function (d, i) {
-                var height = legendRectSize + legendSpacing;
-                var horz = (drawSettings.positionDetails.legendWidth - (widestTextEl + legendRectSize)) / 2;
-                var vert = i * height + legendSpacing;
-                return 'translate(' + horz + ',' + vert + ')';
-            });
+                legend.call(this.attachListenters, options.legend.events, options.events.bind);
+            legend
+                .call(addLegendText, this)
+                .call(addLegendRectangle, this)
+                .call(positionLegendElements, this);
+            function addLegendText(legend, service) {
+                legend.select('text')
+                    .attr('x', legendRectSize + legendSpacing)
+                    .attr('y', legendRectSize - legendSpacing / 2)
+                    .text(function (d, i, n) {
+                    return drawSettings.labelAccessor(d, i, n);
+                })
+                    .call(function (selection) {
+                    var textEls = selection._groups[0];
+                    widestTextEl = d3.max(textEls, function (textEl) { return textEl.getBBox().width; });
+                });
+            }
+            function addLegendRectangle(legend, service) {
+                legend.select('rect')
+                    .attr('width', legendRectSize)
+                    .attr('height', legendRectSize)
+                    .style('fill', function (d, i, n) { return drawSettings.color(drawSettings.labelAccessor(d, i, n)); })
+                    .style('stroke', function (d, i, n) { return drawSettings.color(drawSettings.labelAccessor(d, i, n)); });
+            }
+            function positionLegendElements(legend, service) {
+                // (re)center location of legend 'g' elements
+                legend.attr('transform', function (d, i) {
+                    var height = legendRectSize + legendSpacing;
+                    var horz = (drawSettings.positionDetails.legendWidth - (widestTextEl + legendRectSize)) / 2;
+                    var vert = i * height + legendSpacing;
+                    return 'translate(' + horz + ',' + vert + ')';
+                });
+            }
         };
         CdPieChartService.prototype.drawSeries = function (svg, data, options, drawSettings) {
             this.drawLegend(svg, data, options, drawSettings);
@@ -1240,8 +1478,18 @@ var CdCharts;
             path.exit().remove();
             path = path.enter()
                 .append('path')
-                .merge(path)
-                .call(function (path) {
+                .merge(path);
+            path
+                .call(animatePathEls)
+                .call(stylePathEls);
+            if (options.events)
+                path.call(this.attachListenters, this.events, options.events.bind);
+            function stylePathEls(path) {
+                path
+                    .attr('fill', function (d, i) { return drawSettings.color(drawSettings.labelAccessor(d.data, i)); })
+                    .attr('stroke', function (d, i) { return drawSettings.color(drawSettings.labelAccessor(d.data, i)); });
+            }
+            function animatePathEls(path) {
                 if (!options.animation)
                     options.animation = {};
                 if (options.animation !== 'none') {
@@ -1258,10 +1506,6 @@ var CdCharts;
                         };
                     });
                 }
-            })
-                .attr('fill', function (d, i) { return drawSettings.color(drawSettings.labelAccessor(d.data, i)); });
-            if (options.events) {
-                path.call(this.attachListenters, this.events, options.events.bind);
             }
         };
         CdPieChartService.prototype.draw = function (svg, data, options, drawSettings) {
@@ -1275,7 +1519,7 @@ var CdCharts;
         return CdPieChartService;
     }(CdCharts.DrawService));
     CdCharts.CdPieChartService = CdPieChartService;
-    angular.module('cedrus.ui.components.cdChart')
+    angular.module('cedrus.ui.components.chart')
         .factory('pieChartService', function () { return new CdPieChartService(); });
 })(CdCharts || (CdCharts = {}));
 
@@ -1293,6 +1537,13 @@ var cedrus;
                         this.$element = $element;
                         this.today = new Date();
                         this.defaultOptions = {
+                            useDateRange: false,
+                            layout: 'row',
+                            hideIcons: undefined,
+                            toggleLink: {
+                                show: true,
+                                align: 'left'
+                            },
                             startDate: {
                                 min: false,
                                 rangePlaceholder: 'Date From',
@@ -1302,7 +1553,6 @@ var cedrus;
                                 max: false,
                                 placeholder: 'Date To'
                             },
-                            useDateRange: false,
                             errorMessages: {
                                 startRequired: 'Date From is required when using a date range.',
                                 endRequired: 'Date To is required when using a date range.'
@@ -1725,7 +1975,7 @@ var CdWorksheetExport;
 })(CdWorksheetExport || (CdWorksheetExport = {}));
 
 angular.module('cedrus.ui').run(['$templateCache', function($templateCache) {$templateCache.put('components/calendar/calendar.tpl.html','<div class="container"><div class="hider" ng-click="vm.displayCal()" ng-show="vm.showCal"></div><div class="input-blocker" ng-click="vm.displayCal()" readonly="true"></div><input type="text" class="md-select" ng-model="vm.selection"><div ng-show="vm.showCal" class="panel"><div class="md-whiteframe-2dp"><div class="yearrow" layout="row" layout-align="space-between end"><md-button class="calbtn" ng-click="vm.setYear(-1)" ng-hide="vm.yearSel" aria-label="previous year"><i class="fa fa-chevron-left"></i></md-button><md-button class="calbtn" ng-click="vm.setYear(-12)" ng-show="vm.yearSel" aria-label="go back one page"><i class="fa fa-chevron-left"></i></md-button><md-button class="calbtn yearbtn" ng-click="vm.flipCal()" aria-label="swap between month and year select">{{vm.date.selYear || vm.initYear}}</md-button><md-button class="calbtn" ng-click="vm.setYear(1)" ng-hide="vm.yearSel" aria-label="next year"><i class="fa fa-chevron-right"></i></md-button><md-button class="calbtn" ng-click="vm.setYear(12)" ng-show="vm.yearSel" aria-label="go forward by one page"><i class="fa fa-chevron-right"></i></md-button></div><div layout="row" ng-repeat="monthRow in vm.monthMap" ng-hide="vm.yearSel"><md-button class="calbtn monthSelect" ng-repeat="month in monthRow" ng-click="vm.setMonth(month.value)" aria-label="choose {{month.value}}">{{month.display}}</md-button></div><div layout="row" ng-repeat="yearRow in vm.yearMap" ng-show="vm.yearSel"><md-button class="calbtn yearSelect" ng-repeat="year in yearRow" ng-click="vm.flipCal(); vm.setYear(year)" aria-label="choose {{year}}">{{(vm.date.selYear||vm.initYear)+year}}</md-button></div></div></div></div>');
-$templateCache.put('components/date-range-picker/date-range-picker.tpl.html','<div class="date-range-picker"><div ng-form="vm.form" class="ng-cloak"><md-datepicker name="startDate" class="startDate" ng-model="vm.startDate" ng-change="vm.onDatepickerChange(vm.startDate, vm.endDate)" ng-required="vm.shouldRequire(vm.useDateRange, vm.endDate)" md-placeholder="{{ vm.startPlaceholder(vm.useDateRange) }}" md-min-date="vm.options.startDate.min || false" md-max-date="vm.endDate || vm.options.startDate.max || false" class="startDate"></md-datepicker><md-datepicker ng-show="vm.useDateRange" name="endDate" ng-class="{hidden: !vm.useDateRange}" ng-model="vm.endDate" ng-change="vm.onDatepickerChange(vm.startDate, vm.endDate)" ng-required="vm.shouldRequire(vm.useDateRange, vm.startDate)" md-placeholder="{{ vm.options.endDate.placeholder }}" md-min-date="vm.startDate" md-max-date="vm.options.endDate.max" class="endDate" ng-cloak></md-datepicker></div><a class="toggle-link" ng-click="vm.toggleDateRange(vm.form)">{{ vm.getToggleDateRangeText(vm.useDateRange) }}</a><div class="error-div" ng-if="vm.useDateRange && vm.form.$error && vm.parentFormSubmitted"><span ng-if="vm.form.startDate.$error.required">{{ vm.options.errorMessages.startRequired }} </span><span ng-if="vm.form.endDate.$error.required">{{ vm.options.errorMessages.endRequired }}</span></div></div>');
+$templateCache.put('components/date-range-picker/date-range-picker.tpl.html','<div class="cd-date-range-picker" layout="column"><div ng-form="vm.form" class="ng-cloak" layout="{{ ::vm.options.layout }}"><md-datepicker name="startDate" ng-model="vm.startDate" ng-change="vm.onDatepickerChange(vm.startDate, vm.endDate)" ng-required="vm.shouldRequire(vm.useDateRange, vm.endDate)" md-placeholder="{{ vm.startPlaceholder(vm.useDateRange) }}" md-min-date="vm.options.startDate.min || false" md-max-date="vm.endDate || vm.options.startDate.max || false" class="startDate" ng-class="{\n                        \'hide-all\' : vm.options.hideIcons == \'all\',\n                        \'hide-calendar\' : vm.options.hideIcons == \'calendar\',\n                        \'hide-triangle\' : vm.options.hideIcons == \'triangle\'\n                    }"></md-datepicker><md-datepicker name="endDate" ng-model="vm.endDate" ng-change="vm.onDatepickerChange(vm.startDate, vm.endDate)" ng-required="vm.shouldRequire(vm.useDateRange, vm.startDate)" ng-show="vm.useDateRange" md-placeholder="{{ vm.options.endDate.placeholder }}" md-min-date="vm.startDate" md-max-date="vm.options.endDate.max" class="endDate" ng-class="{\n                        \'hidden\': !vm.useDateRange,\n                        \'hide-all\' : vm.options.hideIcons == \'all\',\n                        \'hide-calendar\' : vm.options.hideIcons == \'calendar\',\n                        \'hide-triangle\' : vm.options.hideIcons == \'triangle\'\n                    }" ng-cloak></md-datepicker></div><span flex><a ng-if="(vm.options.toggleLink) ? vm.options.toggleLink.show : true" class="toggle-link" ng-class="{ \'float-right\':  vm.options.toggleLink.align == \'right\',\n                               \'float-left\':  vm.options.toggleLink.align == \'left\'}" ng-click="vm.toggleDateRange(vm.form)">{{ vm.getToggleDateRangeText(vm.useDateRange) }}</a></span><div class="error-div" ng-if="vm.useDateRange && vm.form.$error && vm.parentFormSubmitted"><span ng-if="vm.form.startDate.$error.required">{{ vm.options.errorMessages.startRequired }} </span><span ng-if="vm.form.endDate.$error.required">{{ vm.options.errorMessages.endRequired }}</span></div></div>');
 $templateCache.put('components/grouped-bar-chart/grouped-bar-chart.tpl.html','<div class="cd-grouped-bar-chart"><div ng-hide="vm.showData()"><div layout="row" layout-fill layout-align="center center" class="no-data"><span>There are no active tasks.</span></div></div><div ng-show="vm.showData()"><div ng-repeat="group in vm.groupDataKeys"><div layout="row" class="group-item"><div layout="column"><md-icon ng-hide="vm.expandField(group)" md-font-icon="fa fa-caret-right" ng-click="vm.setExpandedField(group)" ng-if="vm.options.subFields"></md-icon><md-icon ng-show="vm.expandField(group)" md-font-icon="fa fa-caret-down" ng-click="vm.setExpandedField(group, true)" ng-if="vm.options.subFields"></md-icon></div><div layout="column" flex><div layout="row" layout-align="space-around none"><div flex="60" layout-align="start center">{{group}}</div><div flex="20">Count: {{vm.groupData[group].length}}</div><div flex="20">{{vm.groupData[group].length*100/vm.totalKeys | number:0}}%</div></div></div></div><div layout="row" flex class="line-color"><div ng-style="{width:vm.groupData[group].length*100/vm.totalKeys + \'%\', \'background\': vm.getColor($index, group)}" class="red-line"></div></div><div class="data-container" ng-show="vm.expandField(group)"><div layout="column" ng-show="vm.expandField(group)" ng-if="vm.options.subFields"><div ng-repeat="el in vm.groupData[group]"><div ng-include="vm.options.extendedTemplate || \'lineChartSingleItemExpanded\'"></div></div></div></div></div><div layout="row" layout-align="end none" class="total">Total Count:{{vm.totalKeys}}</div></div></div><script type="text/ng-template" id="lineChartSingleItemExpanded"><div class="panel" layout="column" layout-align="center none">\n        <div layout="row" layout-align="space-between none" class="data-row">\n            <div ng-repeat="(field, displayText ) in vm.options.subFields">\n                <span class="bold-text">{{displayText}}</span>\n                <span>{{el[field]}}</span>\n            </div>\n        </div>\n    </div></script>');
 $templateCache.put('components/sidebar-filter/sidebar-filter.tpl.html','<!--implemenation for user provided custom type/templates--><!--change naming to filter-tree, side-filter towards end--><div class="cd-sidebar-filter"><div ng-repeat="group in vm.filterGroups track by $index" ng-class="(vm.groupLevelClasses + (group.customClass ? \' \' + group.customClass : \'\') )"><div ng-if="!vm.options.isFlat"><md-button ng-click="vm.toggleExpand(group)" class="md-icon-button" aria-label="expand"><md-icon md-font-set="fa" md-font-icon="fa-chevron-right" ng-class="(group.isExpanded  !== false )? \'fa-chevron-down\': \'fa-chevron-right\'"></md-icon></md-button><span>{{ ::vm.processTitle(group, 0) }}</span></div><ul ng-show="group.isExpanded !== false" layout="column" ng-repeat="(filterName, filter) in vm.filters[group.key] track by filterName" ng-class="(vm.filterLevelClasses + (filter.customClass ? \' \' + filter.customClass : \'\'))" ng-class="{ cdFilterFlat : vm.options.isFlat}"><li><div><md-button ng-click="vm.toggleExpand(filter)" class="md-icon-button" aria-label="expand"><md-icon md-font-set="fa" md-font-icon="fa-chevron-right" ng-class="(filter.isExpanded  !== false )? \'fa-chevron-down\': \'fa-chevron-right\'"></md-icon></md-button><span>{{::vm.processTitle(filter, 1)}}</span><ul ng-show="filter.isExpanded !== false"><div ng-if="filter.type === \'checkbox\'" ng-include="\'cdCheckBoxFilter\'"></div><div ng-if="filter.type !== \'checkbox\'" ng-include="vm.customFields[filter.type].template"></div></ul></div></li></ul></div></div><script type="text/ng-template" id="cdCheckBoxFilter"><li ng-repeat="(optionName, option) in filter.options track by optionName" ng-class="(vm.optionLevelClasses + (option.customClass ? \' \' + option.customClass : \'\'))">\n        <md-checkbox ng-model="option.isSelected" ng-change="vm.changeFilter(filter, optionName, $index)" class="md-primary" ng-model-options="{debounce: 250}"\n            aria-label="{{::vm.processTitle(option, 2)}}">\n            <span>{{::vm.processTitle(option, 2)}}</span>\n        </md-checkbox>\n    </li></script>');}]);
-})(window, window.angular);;window.cedrusUI={version:{full: "0.2.27"}};
+})(window, window.angular);;window.cedrusUI={version:{full: "0.2.28"}};

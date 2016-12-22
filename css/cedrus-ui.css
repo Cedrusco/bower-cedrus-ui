@@ -2,7 +2,7 @@
  * Cedrus UI
  * https://github.com/cedrusco/cedrus-ui
  * @license Copyright Cedrus 2016
- * v0.2.27
+ * v0.2.28
  */
 .no-style {
   background-color: inherit;
@@ -136,28 +136,35 @@ cd-chart .custom-overlay {
   top: 50%;
   left: 100%; }
 
-cd-date-range-picker {
-  max-width: 210px;
-  width: 210px; }
-  cd-date-range-picker a,
-  cd-date-range-picker .error-div {
-    float: right;
-    font-size: 12px;
-    margin-right: -12px;
-    margin-top: 5px; }
-  cd-date-range-picker a {
-    cursor: pointer; }
-  cd-date-range-picker .error-div {
-    color: #924806;
-    text-align: right; }
-    cd-date-range-picker .error-div.ng-enter,
-    cd-date-range-picker .error-div span.ng-enter {
-      -webkit-animation: 300ms enter;
-              animation: 300ms enter; }
-    cd-date-range-picker .error-div.ng-leave,
-    cd-date-range-picker .error-div span.ng-leave {
-      -webkit-animation: 50ms leave;
-              animation: 50ms leave; }
+cd-date-range-picker .float-left {
+  float: left; }
+
+cd-date-range-picker .float-right {
+  float: right; }
+
+cd-date-range-picker .toggle-link {
+  font-size: 12px;
+  margin-top: 5px; }
+
+cd-date-range-picker a,
+cd-date-range-picker .error-div {
+  font-size: 12px;
+  margin-top: 5px; }
+
+cd-date-range-picker a {
+  cursor: pointer; }
+
+cd-date-range-picker .error-div {
+  color: #924806;
+  text-align: right; }
+  cd-date-range-picker .error-div.ng-enter,
+  cd-date-range-picker .error-div span.ng-enter {
+    -webkit-animation: 300ms enter;
+            animation: 300ms enter; }
+  cd-date-range-picker .error-div.ng-leave,
+  cd-date-range-picker .error-div span.ng-leave {
+    -webkit-animation: 50ms leave;
+            animation: 50ms leave; }
 
 @-webkit-keyframes enter {
   from {
@@ -178,15 +185,31 @@ cd-date-range-picker {
 @keyframes leave {
   to {
     opacity: 0; } }
-  cd-date-range-picker .startDate {
-    opacity: 1; }
-  cd-date-range-picker .endDate.hidden {
-    opacity: 0; }
-  cd-date-range-picker .endDate.ng-hide {
-    opacity: 0; }
-  cd-date-range-picker .endDate.ng-hide-remove {
-    -webkit-transition: 0.5s linear all;
-    transition: 0.5s linear all; }
+
+cd-date-range-picker .startDate {
+  opacity: 1; }
+
+cd-date-range-picker .endDate.hidden {
+  opacity: 0; }
+
+cd-date-range-picker .endDate.ng-hide {
+  opacity: 0; }
+
+cd-date-range-picker .endDate.ng-hide-remove {
+  -webkit-transition: 0.5s linear all;
+  transition: 0.5s linear all; }
+
+cd-date-range-picker md-datepicker.hide-calendar button.md-datepicker-button {
+  display: none; }
+
+cd-date-range-picker md-datepicker.hide-triangle button.md-datepicker-triangle-button {
+  display: none; }
+
+cd-date-range-picker md-datepicker.hide-all button.md-datepicker-button {
+  display: none; }
+
+cd-date-range-picker md-datepicker.hide-all button.md-datepicker-triangle-button {
+  display: none; }
 
 .cd-grouped-bar-chart .panel {
   background: #f4f4f4;
