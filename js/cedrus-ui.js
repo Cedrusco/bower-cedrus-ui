@@ -2,7 +2,7 @@
  * Cedrus UI
  * https://github.com/cedrusco/cedrus-ui
  * @license Copyright Cedrus 2016
- * v0.3.2
+ * v0.3.3
  */
 (function( window, angular, undefined ){
 "use strict";
@@ -245,7 +245,7 @@ var Core;
         UtilFactory.prototype.log = function () {
             var args = [];
             for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i - 0] = arguments[_i];
+                args[_i] = arguments[_i];
             }
             if (window['isDebug']) {
                 console.debug.apply(console, ['Cedrus UI:'].concat(args));
@@ -518,6 +518,7 @@ var CdCharts;
 (function (CdCharts) {
     var CdChartController = (function () {
         /* @ngInject */
+        CdChartController.$inject = ["$element", "$injector"];
         function CdChartController($element, $injector) {
             var _this = this;
             this.$element = $element;
@@ -587,9 +588,9 @@ var CdCharts;
             var optionsChanged = changeObj.options ? true : false;
             this.drawChart(optionsChanged);
         };
-        CdChartController.$inject = ['$element', '$injector'];
         return CdChartController;
     }());
+    CdChartController.$inject = ['$element', '$injector'];
     var CdChartComponent = (function () {
         function CdChartComponent() {
             this.bindings = {
@@ -688,9 +689,9 @@ var CdCharts;
                 });
             });
         };
-        DrawService.$inject = ['$scope'];
         return DrawService;
     }());
+    DrawService.$inject = ['$scope'];
     CdCharts.DrawService = DrawService;
 })(CdCharts || (CdCharts = {}));
 
@@ -773,6 +774,7 @@ var cedrus;
                                     // Support deep property reference using the 'key'
                                     // e.g. key = x.y.z will be evaluated to value[x][y][z]
                                     value = key.split('.').reduce(function (obj, i) { return obj[i]; }, value);
+                                    // console.warn(value);
                                 }
                                 else if (attrs['key']) {
                                     console.warn('constant key is defined without a value');
@@ -788,16 +790,16 @@ var cedrus;
                         };
                         // console.log('constant component initilized');
                     }
-                    ConstantDirective.$inject = ['$injector'];
-                    ConstantDirective.factory = function () {
-                        function instance($injector) {
-                            return new ConstantDirective($injector);
-                        }
-                        instance.$inject = ['$injector'];
-                        return instance;
-                    };
                     return ConstantDirective;
                 }());
+                ConstantDirective.$inject = ['$injector'];
+                ConstantDirective.factory = function () {
+                    function instance($injector) {
+                        return new ConstantDirective($injector);
+                    }
+                    instance.$inject = ['$injector'];
+                    return instance;
+                };
                 angular.module('cedrus.ui.components.constant', [])
                     .directive('cdConstant', ConstantDirective.factory());
             })(constant = components.constant || (components.constant = {}));
@@ -896,6 +898,7 @@ var cedrus;
 var CdCalendar;
 (function (CdCalendar) {
     var CalendarController = (function () {
+        CalendarController.$inject = ["$element"];
         function CalendarController($element) {
             this.$element = $element;
             this.yearMap = [
@@ -950,9 +953,9 @@ var CdCalendar;
             this.selection = this.ngModel.$viewValue;
             this.showCal = false;
         };
-        CalendarController.$inject = ['$element'];
         return CalendarController;
     }());
+    CalendarController.$inject = ['$element'];
     CdCalendar.CalendarController = CalendarController;
     angular
         .module('cedrus.ui.components.calendar')
@@ -971,8 +974,8 @@ var CdCharts;
             var width = options.width - margin.left - margin.right;
             var barWidth = 50;
             var barOffset = 5;
-            var xAxisProperty = options.xAxisProperty;
-            var yAxisProperty = options.yAxisProperty;
+            var xAxisProperty = ''; // options.xAxisProperty;
+            var yAxisProperty = ''; // options.yAxisProperty;
             if (!this.chartBuilt) {
                 svg = svg.append('g')
                     .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
@@ -1029,17 +1032,22 @@ var CdCharts;
         .service('barChartService', CdBarChartService);
 })(CdCharts || (CdCharts = {}));
 
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var CdCharts;
 (function (CdCharts) {
     var CdLineChartService = (function (_super) {
         __extends(CdLineChartService, _super);
         function CdLineChartService() {
-            _super.apply(this, arguments);
+            return _super !== null && _super.apply(this, arguments) || this;
         }
         /** Retrieve yAxis maximum from the dataset(s) to allow for approrpiate scaling */
         CdLineChartService.prototype.getMaxY = function (data, options, yAccessor) {
@@ -1328,17 +1336,22 @@ var CdCharts;
         .factory('lineChartService', function () { return new CdLineChartService(); });
 })(CdCharts || (CdCharts = {}));
 
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var CdCharts;
 (function (CdCharts) {
     var CdPieChartService = (function (_super) {
         __extends(CdPieChartService, _super);
         function CdPieChartService() {
-            _super.call(this);
+            return _super.call(this) || this;
         }
         CdPieChartService.prototype.prepareOptions = function (svg, data, options, drawSettings) {
             var countAccessor = this.createAccessor(options.countProperty, 'countProperty');
@@ -1530,6 +1543,7 @@ var cedrus;
             var dateRangePicker;
             (function (dateRangePicker) {
                 var DateRangePickerController = (function () {
+                    DateRangePickerController.$inject = ["$q", "$element"];
                     function DateRangePickerController($q, $element) {
                         this.$q = $q;
                         this.$element = $element;
@@ -1610,9 +1624,9 @@ var cedrus;
                     DateRangePickerController.prototype.shouldRequire = function (useDateRange, date) {
                         return useDateRange && date;
                     };
-                    DateRangePickerController.$inject = ['$q', '$element'];
                     return DateRangePickerController;
                 }());
+                DateRangePickerController.$inject = ['$q', '$element'];
                 angular
                     .module('cedrus.ui.components.dateRangePicker')
                     .controller('CdDateRangePicker', DateRangePickerController);
@@ -1705,14 +1719,16 @@ var cedrus;
                 var SidebarFilterController = (function () {
                     function SidebarFilterController() {
                         var _this = this;
-                        this.groupLevelClasses = ['cdFilterGroupLevel'];
-                        this.filterLevelClasses = ['cdFilterFilterLevel'];
-                        this.optionLevelClasses = ['cdFilterOptionLevel'];
+                        this.classDefaults = {
+                            group: 'cdFilterGroupLevel',
+                            filter: 'cdFilterFilterLevel',
+                            option: 'cdFilterOptionLevel',
+                        };
                         // Construct Filter Tree based on user input options
                         this.setDefaults = function () {
                             _this.filters = angular.copy(_this.options.defaultFilterOptions);
                             _this.filterGroups = angular.copy(_this.options.defaultFilterGroups);
-                            _this.options.currentFilters = {};
+                            // Generate currentFilter object
                             var filters = {};
                             for (var group in _this.filters) {
                                 filters[group] = {};
@@ -1733,16 +1749,19 @@ var cedrus;
                             _this.options.currentFilters = filters;
                             if (_this.options.customClasses) {
                                 if (_this.options.customClasses.groupLevel) {
-                                    _this.groupLevelClasses.push(_this.options.customClasses.groupLevel);
-                                    _this.groupLevelClasses = _this.groupLevelClasses.join(' ');
+                                    if (typeof _this.options.customClasses.groupLevel === 'string') {
+                                        _this.groupLevelClasses = _this.classDefaults.group + ' ' + _this.options.customClasses.groupLevel;
+                                    }
                                 }
                                 if (_this.options.customClasses.filterLevel) {
-                                    _this.filterLevelClasses.push(_this.options.customClasses.filterLevel);
-                                    _this.filterLevelClasses = _this.filterLevelClasses.join(' ');
+                                    if (typeof _this.options.customClasses.filterLevel === 'string') {
+                                        _this.filterLevelClasses = _this.classDefaults.filter + ' ' + _this.options.customClasses.filterLevel;
+                                    }
                                 }
                                 if (_this.options.customClasses.optionLevel) {
-                                    _this.optionLevelClasses.push(_this.options.customClasses.optionLevel);
-                                    _this.optionLevelClasses = _this.optionLevelClasses.join(' ');
+                                    if (typeof _this.options.customClasses.optionLevel === 'string') {
+                                        _this.optionLevelClasses = _this.classDefaults.option + ' ' + _this.options.customClasses.optionLevel;
+                                    }
                                 }
                             }
                         };
@@ -1771,11 +1790,27 @@ var cedrus;
                                 _this.options.currentFilters[group][filterName] = _this.customFields[filter.type].handler(currentFilterOption, updatedOption, filter);
                             }
                             /* User passed function that will handle event emission and handling in a custom manner */
-                            _this.options.filterChanged(_this.options.currentFilters, changedFilter);
+                            if (typeof _this.options.filterChanged === 'function') {
+                                _this.options.filterChanged(_this.options.currentFilters, changedFilter);
+                            }
                         };
+                        this.groupLevelClasses = this.classDefaults.group;
+                        this.filterLevelClasses = this.classDefaults.filter;
+                        this.optionLevelClasses = this.classDefaults.option;
                     }
                     SidebarFilterController.prototype.$onInit = function () {
                         this.setDefaults();
+                    };
+                    SidebarFilterController.prototype.$onChanges = function (changes) {
+                        var optionsChange = changes && changes.options && !changes.options.isFirstChange();
+                        var customFieldsChange = changes && changes.customFields && !changes.customFields.isFirstChange();
+                        // Reset filter and trigger filter change function
+                        if (optionsChange || customFieldsChange) {
+                            this.setDefaults();
+                            if (typeof this.options.filterChanged === 'function') {
+                                this.options.filterChanged(this.options.currentFilters);
+                            }
+                        }
                     };
                     SidebarFilterController.prototype.toggleExpand = function (filterOption) {
                         if (filterOption.isExpanded === undefined)
@@ -1791,9 +1826,9 @@ var cedrus;
                         else
                             return option.value;
                     };
-                    SidebarFilterController.$inject = [];
                     return SidebarFilterController;
                 }());
+                SidebarFilterController.$inject = [];
                 var TitleTypes;
                 (function (TitleTypes) {
                     TitleTypes[TitleTypes["GROUP"] = 0] = "GROUP";
@@ -1840,6 +1875,7 @@ var CdWorksheetExport;
 (function (CdWorksheetExport) {
     /* @ngInject */
     var WorksheetExportService = (function () {
+        WorksheetExportService.$inject = ["$filter"];
         function WorksheetExportService($filter) {
             this.$filter = $filter;
         }
@@ -1954,10 +1990,10 @@ var CdWorksheetExport;
             window.URL.revokeObjectURL(url);
             document.body.removeChild(link);
         };
-        /* @ngInject */
-        WorksheetExportService.$inject = ['$filter'];
         return WorksheetExportService;
     }());
+    /* @ngInject */
+    WorksheetExportService.$inject = ['$filter'];
     angular
         .module('cedrus.ui.components.export', [])
         .service('cdWorksheetExportService', WorksheetExportService);
@@ -1967,4 +2003,4 @@ angular.module('cedrus.ui').run(['$templateCache', function($templateCache) {$te
 $templateCache.put('components/date-range-picker/date-range-picker.tpl.html','<div class="cd-date-range-picker" layout="column"><div ng-form="vm.form" class="ng-cloak" layout="{{ ::vm.options.layout }}"><md-datepicker name="startDate" ng-model="vm.ngModel.$modelValue.startDate" ng-required="vm.shouldRequire(vm.useDateRange, vm.ngModel.$modelValue.endDate)" md-placeholder="{{ vm.startPlaceholder(vm.useDateRange) }}" md-min-date="vm.options.startDate.min || false" md-max-date="vm.ngModel.$modelValue.endDate || vm.options.startDate.max || false" class="startDate" ng-class="{\n                        \'hide-all\' : vm.options.hideIcons == \'all\',\n                        \'hide-calendar\' : vm.options.hideIcons == \'calendar\',\n                        \'hide-triangle\' : vm.options.hideIcons == \'triangle\'\n                    }"></md-datepicker><md-datepicker name="endDate" ng-model="vm.ngModel.$modelValue.endDate" ng-required="vm.shouldRequire(vm.useDateRange, vm.ngModel.$modelValue.startDate)" ng-show="vm.useDateRange" md-placeholder="{{ vm.options.endDate.placeholder }}" md-min-date="vm.ngModel.$modelValue.startDate" md-max-date="vm.options.endDate.max" class="endDate" ng-class="{\n                        \'hidden\': !vm.useDateRange,\n                        \'hide-all\' : vm.options.hideIcons == \'all\',\n                        \'hide-calendar\' : vm.options.hideIcons == \'calendar\',\n                        \'hide-triangle\' : vm.options.hideIcons == \'triangle\'\n                    }" ng-cloak></md-datepicker></div><span flex><a ng-if="(vm.options.toggleLink) ? vm.options.toggleLink.show : true" class="toggle-link" ng-class="{ \'float-right\':  vm.options.toggleLink.align == \'right\',\n                               \'float-left\':  vm.options.toggleLink.align == \'left\'}" ng-click="vm.toggleDateRange(vm.form)">{{ vm.getToggleDateRangeText(vm.useDateRange) }}</a></span><div class="error-div" ng-if="vm.useDateRange && vm.form.$error && vm.parentFormSubmitted"><span ng-if="vm.form.startDate.$error.required">{{ vm.options.errorMessages.startRequired }} </span><span ng-if="vm.form.endDate.$error.required">{{ vm.options.errorMessages.endRequired }}</span></div></div>');
 $templateCache.put('components/grouped-bar-chart/grouped-bar-chart.tpl.html','<div class="cd-grouped-bar-chart"><div ng-hide="vm.showData()"><div layout="row" layout-fill layout-align="center center" class="no-data"><span>There are no active tasks.</span></div></div><div ng-show="vm.showData()"><div ng-repeat="group in vm.groupDataKeys"><div layout="row" class="group-item"><div layout="column"><md-icon ng-hide="vm.expandField(group)" md-font-icon="fa fa-caret-right" ng-click="vm.setExpandedField(group)" ng-if="vm.options.subFields"></md-icon><md-icon ng-show="vm.expandField(group)" md-font-icon="fa fa-caret-down" ng-click="vm.setExpandedField(group, true)" ng-if="vm.options.subFields"></md-icon></div><div layout="column" flex><div layout="row" layout-align="space-around none"><div flex="60" layout-align="start center">{{group}}</div><div flex="20">Count: {{vm.groupData[group].length}}</div><div flex="20">{{vm.groupData[group].length*100/vm.totalKeys | number:0}}%</div></div></div></div><div layout="row" flex class="line-color"><div ng-style="{width:vm.groupData[group].length*100/vm.totalKeys + \'%\', \'background\': vm.getColor($index, group)}" class="red-line"></div></div><div class="data-container" ng-show="vm.expandField(group)"><div layout="column" ng-show="vm.expandField(group)" ng-if="vm.options.subFields"><div ng-repeat="el in vm.groupData[group]"><div ng-include="vm.options.extendedTemplate || \'lineChartSingleItemExpanded\'"></div></div></div></div></div><div layout="row" layout-align="end none" class="total">Total Count:{{vm.totalKeys}}</div></div></div><script type="text/ng-template" id="lineChartSingleItemExpanded"><div class="panel" layout="column" layout-align="center none">\n        <div layout="row" layout-align="space-between none" class="data-row">\n            <div ng-repeat="(field, displayText ) in vm.options.subFields">\n                <span class="bold-text">{{displayText}}</span>\n                <span>{{el[field]}}</span>\n            </div>\n        </div>\n    </div></script>');
 $templateCache.put('components/sidebar-filter/sidebar-filter.tpl.html','<!--implemenation for user provided custom type/templates--><!--change naming to filter-tree, side-filter towards end--><div class="cd-sidebar-filter"><div ng-repeat="group in vm.filterGroups track by $index" ng-class="(vm.groupLevelClasses + (group.customClass ? \' \' + group.customClass : \'\') )"><div ng-if="!vm.options.isFlat"><md-button ng-click="vm.toggleExpand(group)" class="md-icon-button" aria-label="expand"><md-icon md-font-set="fa" md-font-icon="fa-chevron-right" ng-class="(group.isExpanded  !== false )? \'fa-chevron-down\': \'fa-chevron-right\'"></md-icon></md-button><span>{{ ::vm.processTitle(group, 0) }}</span></div><ul ng-show="group.isExpanded !== false" layout="column" ng-repeat="(filterName, filter) in vm.filters[group.key] track by filterName" ng-class="(vm.filterLevelClasses + (filter.customClass ? \' \' + filter.customClass : \'\'))" ng-class="{ cdFilterFlat : vm.options.isFlat}"><li><div><md-button ng-click="vm.toggleExpand(filter)" class="md-icon-button" aria-label="expand"><md-icon md-font-set="fa" md-font-icon="fa-chevron-right" ng-class="(filter.isExpanded  !== false )? \'fa-chevron-down\': \'fa-chevron-right\'"></md-icon></md-button><span>{{::vm.processTitle(filter, 1)}}</span><ul ng-show="filter.isExpanded !== false"><div ng-if="filter.type === \'checkbox\'" ng-include="\'cdCheckBoxFilter\'"></div><div ng-if="filter.type !== \'checkbox\'" ng-include="vm.customFields[filter.type].template"></div></ul></div></li></ul></div></div><script type="text/ng-template" id="cdCheckBoxFilter"><li ng-repeat="(optionName, option) in filter.options track by optionName" ng-class="(vm.optionLevelClasses + (option.customClass ? \' \' + option.customClass : \'\'))">\n        <md-checkbox ng-model="option.isSelected" ng-change="vm.changeFilter(filter, optionName, $index)" class="md-primary" ng-model-options="{debounce: 250}"\n            aria-label="{{::vm.processTitle(option, 2)}}">\n            <span>{{::vm.processTitle(option, 2)}}</span>\n        </md-checkbox>\n    </li></script>');}]);
-})(window, window.angular);;window.cedrusUI={version:{full: "0.3.2"}};
+})(window, window.angular);;window.cedrusUI={version:{full: "0.3.3"}};
