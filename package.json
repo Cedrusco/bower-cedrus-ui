@@ -3,14 +3,29 @@
   "version": "0.3.5",
   "description": "Cedrus UI graphical components library in Angular JS",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "author": "Mohamed Maher <moh.maher@gmail.com>",
+  "license": "ISC",
   "keywords": [
     "cedrus",
     "ui",
-    "material"
+    "browser",
+    "material",
+    "angular",
+    "css",
+    "components"
   ],
-  "author": "Mohamed Maher <moh.maher@gmail.com>",
-  "license": "ISC"
+  "homepage": "https://github.com/Cedrusco/bower-cedrus-ui",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "angular": "^1.5.8",
+    "angular-material": "^1.0.9",
+    "angular-animate": "^1.5.8",
+    "angular-aria": "^1.5.8",
+    "angular-messages": "^1.5.8",
+    "d3": "^4.2.6",
+    "d3-tip": "^0.7.1",
+    "js-xlsx": "^0.8.0"
+  }
 }
