@@ -7,7 +7,7 @@
 (function( window, angular, undefined ){
 "use strict";
 
-angular.module('cedrus.ui', ["ng","ngAnimate","ngAria","cedrus.ui.core","cedrus.ui.components.chart","cedrus.ui.components.calendar","cedrus.ui.components.constant","cedrus.ui.components.dateRangePicker","cedrus.ui.components.cdGroupedBarChart","cedrus.ui.components.sidebarFilter","cedrus.ui.components.export"]);
+angular.module('cedrus.ui', ["ng","ngAnimate","ngAria","cedrus.ui.core","cedrus.ui.components.calendar","cedrus.ui.components.chart","cedrus.ui.components.constant","cedrus.ui.components.dateRangePicker","cedrus.ui.components.sidebarFilter","cedrus.ui.components.cdGroupedBarChart","cedrus.ui.components.export"]);
 /**
  * @ngdoc module
  * @name cedrus.ui.core
@@ -270,6 +270,57 @@ var Core;
         .module('cedrus.ui.core')
         .factory('$cedrusUtil', function () { return UtilFactory; });
 })(Core || (Core = {}));
+
+/**
+ * @ngdoc module
+ * @name cedrus.ui.components.calendar
+ * @description
+ *
+ * Calendar
+ */
+var CdCalendar;
+(function (CdCalendar) {
+    /**
+     * @ngdoc directive
+     * @name cdCalendar
+     * @module cedrus.ui.components.calendar
+     * @description
+     * 	Calendar component usage.  Calendar is a form element used to select 'month dates' (e.g. 'January 2016', 'August 1988').
+
+        <form name="vm.exampleForm">
+            <cd-calendar ng-model="vm.form.monthDate" options="vm.formOptions"></cd-calendar>
+        </form>
+
+        Users may provide an options object.  Currently the only supported option is 'blockFreeTyping'.
+
+        'blockFreeTyping' is a Boolean value that defaults to false.  If true blockFreeTyping will disallow users from manually typing into the input field
+        and will only allow the value to be assigned through selecting a date through the pop up calendar.
+
+        Here is an example of an options object for the above example form.
+
+        vm.formOptions = {
+            blockFreeTyping: true
+        };
+     */
+    var CalendarComponent = (function () {
+        function CalendarComponent() {
+            this.templateUrl = 'components/calendar/calendar.tpl.html';
+            this.controllerAs = 'vm';
+            this.controller = 'CalendarController';
+            this.bindings = {
+                options: '='
+            };
+            this.require = {
+                ngModel: 'ngModel'
+            };
+        }
+        return CalendarComponent;
+    }());
+    CdCalendar.CalendarComponent = CalendarComponent;
+    angular
+        .module('cedrus.ui.components.calendar', [])
+        .component('cdCalendar', new CalendarComponent());
+})(CdCalendar || (CdCalendar = {}));
 
 /**
  * @ngdoc module
@@ -645,57 +696,6 @@ var CdCharts;
 })(CdCharts || (CdCharts = {}));
 
 /**
- * @ngdoc module
- * @name cedrus.ui.components.calendar
- * @description
- *
- * Calendar
- */
-var CdCalendar;
-(function (CdCalendar) {
-    /**
-     * @ngdoc directive
-     * @name cdCalendar
-     * @module cedrus.ui.components.calendar
-     * @description
-     * 	Calendar component usage.  Calendar is a form element used to select 'month dates' (e.g. 'January 2016', 'August 1988').
-
-        <form name="vm.exampleForm">
-            <cd-calendar ng-model="vm.form.monthDate" options="vm.formOptions"></cd-calendar>
-        </form>
-
-        Users may provide an options object.  Currently the only supported option is 'blockFreeTyping'.
-
-        'blockFreeTyping' is a Boolean value that defaults to false.  If true blockFreeTyping will disallow users from manually typing into the input field
-        and will only allow the value to be assigned through selecting a date through the pop up calendar.
-
-        Here is an example of an options object for the above example form.
-
-        vm.formOptions = {
-            blockFreeTyping: true
-        };
-     */
-    var CalendarComponent = (function () {
-        function CalendarComponent() {
-            this.templateUrl = 'components/calendar/calendar.tpl.html';
-            this.controllerAs = 'vm';
-            this.controller = 'CalendarController';
-            this.bindings = {
-                options: '='
-            };
-            this.require = {
-                ngModel: 'ngModel'
-            };
-        }
-        return CalendarComponent;
-    }());
-    CdCalendar.CalendarComponent = CalendarComponent;
-    angular
-        .module('cedrus.ui.components.calendar', [])
-        .component('cdCalendar', new CalendarComponent());
-})(CdCalendar || (CdCalendar = {}));
-
-/**
      * @ngdoc module
      * @name cedrus.ui.components.constant
      * @description
@@ -848,26 +848,6 @@ var cedrus;
     })(ui = cedrus.ui || (cedrus.ui = {}));
 })(cedrus || (cedrus = {}));
 
-var CdgroupedBarChart;
-(function (CdgroupedBarChart) {
-    var GroupedBarChartComponent = (function () {
-        function GroupedBarChartComponent() {
-            this.bindings = {
-                data: '=',
-                options: '='
-            };
-            this.templateUrl = 'components/grouped-bar-chart/grouped-bar-chart.tpl.html';
-            this.controller = 'groupedBarChartController';
-            this.controllerAs = 'vm';
-            this.transclude = true;
-        }
-        return GroupedBarChartComponent;
-    }());
-    angular
-        .module('cedrus.ui.components.cdGroupedBarChart', [])
-        .component('cdGroupedBarChart', new GroupedBarChartComponent());
-})(CdgroupedBarChart || (CdgroupedBarChart = {}));
-
 var cedrus;
 (function (cedrus) {
     var ui;
@@ -895,6 +875,93 @@ var cedrus;
         })(components = ui.components || (ui.components = {}));
     })(ui = cedrus.ui || (cedrus.ui = {}));
 })(cedrus || (cedrus = {}));
+
+var CdgroupedBarChart;
+(function (CdgroupedBarChart) {
+    var GroupedBarChartComponent = (function () {
+        function GroupedBarChartComponent() {
+            this.bindings = {
+                data: '=',
+                options: '='
+            };
+            this.templateUrl = 'components/grouped-bar-chart/grouped-bar-chart.tpl.html';
+            this.controller = 'groupedBarChartController';
+            this.controllerAs = 'vm';
+            this.transclude = true;
+        }
+        return GroupedBarChartComponent;
+    }());
+    angular
+        .module('cedrus.ui.components.cdGroupedBarChart', [])
+        .component('cdGroupedBarChart', new GroupedBarChartComponent());
+})(CdgroupedBarChart || (CdgroupedBarChart = {}));
+
+var CdCalendar;
+(function (CdCalendar) {
+    var CalendarController = (function () {
+        CalendarController.$inject = ["$element"];
+        function CalendarController($element) {
+            this.$element = $element;
+            this.yearMap = [
+                [-4, -3, -2],
+                [-1, 0, 1],
+                [2, 3, 4],
+                [5, 6, 7]
+            ];
+            this.monthMap = [
+                [{ display: 'Jan', value: 'January' }, { display: 'Feb', value: 'February' }, { display: 'Mar', value: 'March' }],
+                [{ display: 'Apr', value: 'April' }, { display: 'May', value: 'May' }, { display: 'Jun', value: 'June' }],
+                [{ display: 'Jul', value: 'July' }, { display: 'Aug', value: 'August' }, { display: 'Sep', value: 'September' }],
+                [{ display: 'Oct', value: 'October' }, { display: 'Nov', value: 'November' }, { display: 'Dec', value: 'December' }]
+            ];
+        }
+        CalendarController.prototype.$onInit = function () {
+            this.initYear = new Date().getFullYear();
+            this.date = {
+                selYear: this.initYear,
+                selMonth: ''
+            };
+            this.showCal = false;
+        };
+        CalendarController.prototype.$postLink = function () {
+            this.inputEl = this.$element.find('input');
+            if (this.options && this.options.blockFreeTyping === true) {
+                this.inputEl.keydown(function (e) {
+                    e.preventDefault();
+                });
+            }
+        };
+        CalendarController.prototype.displayCal = function () {
+            this.showCal = !this.showCal;
+            if (this.showCal) {
+                this.inputEl.focus();
+            }
+        };
+        CalendarController.prototype.flipCal = function () {
+            this.yearSel = !this.yearSel;
+        };
+        CalendarController.prototype.setYear = function (num) {
+            if (!this.date.selYear)
+                this.date.selYear = this.initYear;
+            this.date.selYear += num;
+        };
+        CalendarController.prototype.setMonth = function (month) {
+            if (!this.date.selYear)
+                this.date.selYear = this.initYear;
+            this.date.selMonth = month;
+            this.ngModel.$setViewValue(this.date.selMonth + ' ' + this.date.selYear);
+            this.ngModel.$render();
+            this.selection = this.ngModel.$viewValue;
+            this.showCal = false;
+        };
+        return CalendarController;
+    }());
+    CalendarController.$inject = ['$element'];
+    CdCalendar.CalendarController = CalendarController;
+    angular
+        .module('cedrus.ui.components.calendar')
+        .controller('CalendarController', CalendarController);
+})(CdCalendar || (CdCalendar = {}));
 
 var CdCharts;
 (function (CdCharts) {
@@ -1468,73 +1535,6 @@ var CdCharts;
         .factory('pieChartService', function () { return new CdPieChartService(); });
 })(CdCharts || (CdCharts = {}));
 
-var CdCalendar;
-(function (CdCalendar) {
-    var CalendarController = (function () {
-        CalendarController.$inject = ["$element"];
-        function CalendarController($element) {
-            this.$element = $element;
-            this.yearMap = [
-                [-4, -3, -2],
-                [-1, 0, 1],
-                [2, 3, 4],
-                [5, 6, 7]
-            ];
-            this.monthMap = [
-                [{ display: 'Jan', value: 'January' }, { display: 'Feb', value: 'February' }, { display: 'Mar', value: 'March' }],
-                [{ display: 'Apr', value: 'April' }, { display: 'May', value: 'May' }, { display: 'Jun', value: 'June' }],
-                [{ display: 'Jul', value: 'July' }, { display: 'Aug', value: 'August' }, { display: 'Sep', value: 'September' }],
-                [{ display: 'Oct', value: 'October' }, { display: 'Nov', value: 'November' }, { display: 'Dec', value: 'December' }]
-            ];
-        }
-        CalendarController.prototype.$onInit = function () {
-            this.initYear = new Date().getFullYear();
-            this.date = {
-                selYear: this.initYear,
-                selMonth: ''
-            };
-            this.showCal = false;
-        };
-        CalendarController.prototype.$postLink = function () {
-            this.inputEl = this.$element.find('input');
-            if (this.options && this.options.blockFreeTyping === true) {
-                this.inputEl.keydown(function (e) {
-                    e.preventDefault();
-                });
-            }
-        };
-        CalendarController.prototype.displayCal = function () {
-            this.showCal = !this.showCal;
-            if (this.showCal) {
-                this.inputEl.focus();
-            }
-        };
-        CalendarController.prototype.flipCal = function () {
-            this.yearSel = !this.yearSel;
-        };
-        CalendarController.prototype.setYear = function (num) {
-            if (!this.date.selYear)
-                this.date.selYear = this.initYear;
-            this.date.selYear += num;
-        };
-        CalendarController.prototype.setMonth = function (month) {
-            if (!this.date.selYear)
-                this.date.selYear = this.initYear;
-            this.date.selMonth = month;
-            this.ngModel.$setViewValue(this.date.selMonth + ' ' + this.date.selYear);
-            this.ngModel.$render();
-            this.selection = this.ngModel.$viewValue;
-            this.showCal = false;
-        };
-        return CalendarController;
-    }());
-    CalendarController.$inject = ['$element'];
-    CdCalendar.CalendarController = CalendarController;
-    angular
-        .module('cedrus.ui.components.calendar')
-        .controller('CalendarController', CalendarController);
-})(CdCalendar || (CdCalendar = {}));
-
 var cedrus;
 (function (cedrus) {
     var ui;
@@ -1650,79 +1650,6 @@ var cedrus;
         })(components = ui.components || (ui.components = {}));
     })(ui = cedrus.ui || (cedrus.ui = {}));
 })(cedrus || (cedrus = {}));
-
-var CdgroupedBarChart;
-(function (CdgroupedBarChart) {
-    var GroupedBarChartController = (function () {
-        function GroupedBarChartController() {
-            this.groupDataKeys = [];
-            this.groupData = {};
-            this.totalKeys = 0;
-            this.expandedField = [];
-            this.groups = {};
-            this.groupKeys = [];
-            this.dataLength = this.data.length;
-        }
-        GroupedBarChartController.prototype.$onInit = function () {
-            (this.options.colors && this.options.colors.list) ? this.colors = this.options.colors.list : this.colors = ['red', 'blue', 'lightblue', 'grey', 'black'];
-            this.generateGroups();
-        };
-        GroupedBarChartController.prototype.getColor = function (index, group) {
-            group = group.toLowerCase();
-            if (this.options.colors && this.options.colors.bindings && this.options.colors.bindings[group]) {
-                return this.options.colors.bindings[group];
-            }
-            return this.colors[index % this.colors.length];
-        };
-        GroupedBarChartController.prototype.expandField = function (group) {
-            return this.expandedField.indexOf(group) !== -1;
-        };
-        GroupedBarChartController.prototype.setExpandedField = function (group, remove) {
-            if (remove) {
-                this.expandedField.splice(this.expandedField.indexOf(group), 1);
-            }
-            else {
-                this.expandedField.push(group);
-            }
-        };
-        GroupedBarChartController.prototype.generateGroups = function () {
-            this.data.forEach(function (dataPoint, idx) {
-                // check to see if for example dueDate field exists on that el
-                if (dataPoint[this.options.groupingField]) {
-                    // if there is a value for dueDate field on that el
-                    var groupingKey;
-                    // check if theres a function to make a custom group name
-                    // if not use the field name
-                    if (this.options.transform) {
-                        groupingKey = this.options.transform(dataPoint);
-                    }
-                    else {
-                        groupingKey = dataPoint[this.options.groupingField];
-                    }
-                    if (!this.groups[groupingKey]) {
-                        this.groups[groupingKey] = [];
-                    }
-                    this.groups[groupingKey].push(dataPoint);
-                    this.totalKeys++;
-                }
-            }.bind(this));
-            this.groupKeys = Object.keys(this.groups);
-            angular.copy(this.groupKeys, this.groupDataKeys);
-            angular.copy(this.groups, this.groupData);
-        };
-        GroupedBarChartController.prototype.showData = function () {
-            if (this.data.length !== this.dataLength) {
-                this.generateGroups();
-            }
-            this.dataLength = this.data.length;
-            return this.data.length !== 0;
-        };
-        return GroupedBarChartController;
-    }());
-    angular
-        .module('cedrus.ui.components.cdGroupedBarChart')
-        .controller('groupedBarChartController', GroupedBarChartController);
-})(CdgroupedBarChart || (CdgroupedBarChart = {}));
 
 var cedrus;
 (function (cedrus) {
@@ -1870,6 +1797,79 @@ function checkboxHandler(currentFilterOption, updatedOption) {
     }
     return currentFilterOption;
 }
+
+var CdgroupedBarChart;
+(function (CdgroupedBarChart) {
+    var GroupedBarChartController = (function () {
+        function GroupedBarChartController() {
+            this.groupDataKeys = [];
+            this.groupData = {};
+            this.totalKeys = 0;
+            this.expandedField = [];
+            this.groups = {};
+            this.groupKeys = [];
+            this.dataLength = this.data.length;
+        }
+        GroupedBarChartController.prototype.$onInit = function () {
+            (this.options.colors && this.options.colors.list) ? this.colors = this.options.colors.list : this.colors = ['red', 'blue', 'lightblue', 'grey', 'black'];
+            this.generateGroups();
+        };
+        GroupedBarChartController.prototype.getColor = function (index, group) {
+            group = group.toLowerCase();
+            if (this.options.colors && this.options.colors.bindings && this.options.colors.bindings[group]) {
+                return this.options.colors.bindings[group];
+            }
+            return this.colors[index % this.colors.length];
+        };
+        GroupedBarChartController.prototype.expandField = function (group) {
+            return this.expandedField.indexOf(group) !== -1;
+        };
+        GroupedBarChartController.prototype.setExpandedField = function (group, remove) {
+            if (remove) {
+                this.expandedField.splice(this.expandedField.indexOf(group), 1);
+            }
+            else {
+                this.expandedField.push(group);
+            }
+        };
+        GroupedBarChartController.prototype.generateGroups = function () {
+            this.data.forEach(function (dataPoint, idx) {
+                // check to see if for example dueDate field exists on that el
+                if (dataPoint[this.options.groupingField]) {
+                    // if there is a value for dueDate field on that el
+                    var groupingKey;
+                    // check if theres a function to make a custom group name
+                    // if not use the field name
+                    if (this.options.transform) {
+                        groupingKey = this.options.transform(dataPoint);
+                    }
+                    else {
+                        groupingKey = dataPoint[this.options.groupingField];
+                    }
+                    if (!this.groups[groupingKey]) {
+                        this.groups[groupingKey] = [];
+                    }
+                    this.groups[groupingKey].push(dataPoint);
+                    this.totalKeys++;
+                }
+            }.bind(this));
+            this.groupKeys = Object.keys(this.groups);
+            angular.copy(this.groupKeys, this.groupDataKeys);
+            angular.copy(this.groups, this.groupData);
+        };
+        GroupedBarChartController.prototype.showData = function () {
+            if (this.data.length !== this.dataLength) {
+                this.generateGroups();
+            }
+            this.dataLength = this.data.length;
+            return this.data.length !== 0;
+        };
+        return GroupedBarChartController;
+    }());
+    angular
+        .module('cedrus.ui.components.cdGroupedBarChart')
+        .controller('groupedBarChartController', GroupedBarChartController);
+})(CdgroupedBarChart || (CdgroupedBarChart = {}));
 
 /**
  * @ngdoc module
