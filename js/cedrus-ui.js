@@ -7,7 +7,7 @@
 (function( window, angular, undefined ){
 "use strict";
 
-angular.module('cedrus.ui', ["ng","ngAnimate","ngAria","cedrus.ui.core","cedrus.ui.components.calendar","cedrus.ui.components.constant","cedrus.ui.components.chart","cedrus.ui.components.dateRangePicker","cedrus.ui.components.cdGroupedBarChart","cedrus.ui.components.sidebarFilter","cedrus.ui.components.export"]);
+angular.module('cedrus.ui', ["ng","ngAnimate","ngAria","cedrus.ui.core","cedrus.ui.components.chart","cedrus.ui.components.calendar","cedrus.ui.components.constant","cedrus.ui.components.dateRangePicker","cedrus.ui.components.cdGroupedBarChart","cedrus.ui.components.sidebarFilter","cedrus.ui.components.export"]);
 /**
  * @ngdoc module
  * @name cedrus.ui.core
@@ -270,169 +270,6 @@ var Core;
         .module('cedrus.ui.core')
         .factory('$cedrusUtil', function () { return UtilFactory; });
 })(Core || (Core = {}));
-
-/**
- * @ngdoc module
- * @name cedrus.ui.components.calendar
- * @description
- *
- * Calendar
- */
-var CdCalendar;
-(function (CdCalendar) {
-    /**
-     * @ngdoc directive
-     * @name cdCalendar
-     * @module cedrus.ui.components.calendar
-     * @description
-     * 	Calendar component usage.  Calendar is a form element used to select 'month dates' (e.g. 'January 2016', 'August 1988').
-
-        <form name="vm.exampleForm">
-            <cd-calendar ng-model="vm.form.monthDate" options="vm.formOptions"></cd-calendar>
-        </form>
-
-        Users may provide an options object.  Currently the only supported option is 'blockFreeTyping'.
-
-        'blockFreeTyping' is a Boolean value that defaults to false.  If true blockFreeTyping will disallow users from manually typing into the input field
-        and will only allow the value to be assigned through selecting a date through the pop up calendar.
-
-        Here is an example of an options object for the above example form.
-
-        vm.formOptions = {
-            blockFreeTyping: true
-        };
-     */
-    var CalendarComponent = (function () {
-        function CalendarComponent() {
-            this.templateUrl = 'components/calendar/calendar.tpl.html';
-            this.controllerAs = 'vm';
-            this.controller = 'CalendarController';
-            this.bindings = {
-                options: '='
-            };
-            this.require = {
-                ngModel: 'ngModel'
-            };
-        }
-        return CalendarComponent;
-    }());
-    CdCalendar.CalendarComponent = CalendarComponent;
-    angular
-        .module('cedrus.ui.components.calendar', [])
-        .component('cdCalendar', new CalendarComponent());
-})(CdCalendar || (CdCalendar = {}));
-
-/**
-     * @ngdoc module
-     * @name cedrus.ui.components.constant
-     * @description
-     * Constant module
-     */
-var cedrus;
-(function (cedrus) {
-    var ui;
-    (function (ui) {
-        var components;
-        (function (components) {
-            var constant;
-            (function (constant) {
-                'use strict';
-                /**
-                 * @ngdoc directive
-                 * @name cdConstant
-                 * @module cedrus.ui.components.constant
-                 * @description
-                 * This directive simplify accessing the application constants without using a controller. In general, it can extract the information from a defined constant, value, or service.
-                 *
-                 * @usage
-                 * ## Angular Constants sample
-                 * <hljs lang="js">
-                 *  angular.module('myApp')
-                 *      .constant('simple', 'Hello')
-                 *      .constant('complex', { address: {line1: 'Address line 1', line2: 'address line 2' }})
-                 * </hljs>
-                 *
-                 * ## HTML samples:
-                 * <hljs lang="html">
-                 *  # Use as attribute
-                 *  <span cd-constant="simple"> Show constant </span>
-                 *  <span cd-constant="simple" replace="true"></span>
-                 *
-                 *  ## Using attribute, and replace flag
-                 *  <div cd-constant="complex" key="address.line1" replace="false"><div>Other complex Text</div></div>
-                 *
-                 *  ## Use as Element
-                 *  <cd-constant name="simple"></cd-constant>
-                 *  <cd-constant name="complex" key="address.line2" replace="true"></cd-constant>
-                 * </hljs>
-                 */
-                var ConstantDirective = (function () {
-                    function ConstantDirective($injector) {
-                        var _this = this;
-                        this.$injector = $injector;
-                        this.restrict = 'EA';
-                        // No need to create isolated scope, we will use the attrs to refer to the bindings
-                        this.scope = {
-                            /* name of the Constant or service  */
-                            name: '@?',
-                            /* attribute key name of complex object that is returned from evaluating the name */
-                            key: '@?',
-                            /* Replace the element content : true or false */
-                            replace: '@?'
-                        };
-                        this.link = function (scope, element, attrs) {
-                            var isReplace = (attrs['replace'] === 'true');
-                            var name = attrs['cdConstant'] || attrs['name'];
-                            var key = attrs['key'];
-                            var value;
-                            if (attrs['name'] && !name) {
-                                console.error('constant name is not provided');
-                            }
-                            if (name) {
-                                if (typeof name === 'string') {
-                                    value = _this.$injector.get(name);
-                                }
-                                else {
-                                    value = name;
-                                }
-                                // console.info(value);
-                                if (key != null && key !== '') {
-                                    // value = value[key];
-                                    // Support deep property reference using the 'key'
-                                    // e.g. key = x.y.z will be evaluated to value[x][y][z]
-                                    value = key.split('.').reduce(function (obj, i) { return obj[i]; }, value);
-                                    // console.warn(value);
-                                }
-                                else if (attrs['key']) {
-                                    console.warn('constant key is defined without a value');
-                                }
-                                // Check if we need to replace the element
-                                if (isReplace === true) {
-                                    element.replaceWith(value);
-                                }
-                                else {
-                                    element.text(value);
-                                }
-                            }
-                        };
-                        // console.log('constant component initilized');
-                    }
-                    return ConstantDirective;
-                }());
-                ConstantDirective.$inject = ['$injector'];
-                ConstantDirective.factory = function () {
-                    function instance($injector) {
-                        return new ConstantDirective($injector);
-                    }
-                    instance.$inject = ['$injector'];
-                    return instance;
-                };
-                angular.module('cedrus.ui.components.constant', [])
-                    .directive('cdConstant', ConstantDirective.factory());
-            })(constant = components.constant || (components.constant = {}));
-        })(components = ui.components || (ui.components = {}));
-    })(ui = cedrus.ui || (cedrus.ui = {}));
-})(cedrus || (cedrus = {}));
 
 /**
  * @ngdoc module
@@ -809,6 +646,169 @@ var CdCharts;
 
 /**
  * @ngdoc module
+ * @name cedrus.ui.components.calendar
+ * @description
+ *
+ * Calendar
+ */
+var CdCalendar;
+(function (CdCalendar) {
+    /**
+     * @ngdoc directive
+     * @name cdCalendar
+     * @module cedrus.ui.components.calendar
+     * @description
+     * 	Calendar component usage.  Calendar is a form element used to select 'month dates' (e.g. 'January 2016', 'August 1988').
+
+        <form name="vm.exampleForm">
+            <cd-calendar ng-model="vm.form.monthDate" options="vm.formOptions"></cd-calendar>
+        </form>
+
+        Users may provide an options object.  Currently the only supported option is 'blockFreeTyping'.
+
+        'blockFreeTyping' is a Boolean value that defaults to false.  If true blockFreeTyping will disallow users from manually typing into the input field
+        and will only allow the value to be assigned through selecting a date through the pop up calendar.
+
+        Here is an example of an options object for the above example form.
+
+        vm.formOptions = {
+            blockFreeTyping: true
+        };
+     */
+    var CalendarComponent = (function () {
+        function CalendarComponent() {
+            this.templateUrl = 'components/calendar/calendar.tpl.html';
+            this.controllerAs = 'vm';
+            this.controller = 'CalendarController';
+            this.bindings = {
+                options: '='
+            };
+            this.require = {
+                ngModel: 'ngModel'
+            };
+        }
+        return CalendarComponent;
+    }());
+    CdCalendar.CalendarComponent = CalendarComponent;
+    angular
+        .module('cedrus.ui.components.calendar', [])
+        .component('cdCalendar', new CalendarComponent());
+})(CdCalendar || (CdCalendar = {}));
+
+/**
+     * @ngdoc module
+     * @name cedrus.ui.components.constant
+     * @description
+     * Constant module
+     */
+var cedrus;
+(function (cedrus) {
+    var ui;
+    (function (ui) {
+        var components;
+        (function (components) {
+            var constant;
+            (function (constant) {
+                'use strict';
+                /**
+                 * @ngdoc directive
+                 * @name cdConstant
+                 * @module cedrus.ui.components.constant
+                 * @description
+                 * This directive simplify accessing the application constants without using a controller. In general, it can extract the information from a defined constant, value, or service.
+                 *
+                 * @usage
+                 * ## Angular Constants sample
+                 * <hljs lang="js">
+                 *  angular.module('myApp')
+                 *      .constant('simple', 'Hello')
+                 *      .constant('complex', { address: {line1: 'Address line 1', line2: 'address line 2' }})
+                 * </hljs>
+                 *
+                 * ## HTML samples:
+                 * <hljs lang="html">
+                 *  # Use as attribute
+                 *  <span cd-constant="simple"> Show constant </span>
+                 *  <span cd-constant="simple" replace="true"></span>
+                 *
+                 *  ## Using attribute, and replace flag
+                 *  <div cd-constant="complex" key="address.line1" replace="false"><div>Other complex Text</div></div>
+                 *
+                 *  ## Use as Element
+                 *  <cd-constant name="simple"></cd-constant>
+                 *  <cd-constant name="complex" key="address.line2" replace="true"></cd-constant>
+                 * </hljs>
+                 */
+                var ConstantDirective = (function () {
+                    function ConstantDirective($injector) {
+                        var _this = this;
+                        this.$injector = $injector;
+                        this.restrict = 'EA';
+                        // No need to create isolated scope, we will use the attrs to refer to the bindings
+                        this.scope = {
+                            /* name of the Constant or service  */
+                            name: '@?',
+                            /* attribute key name of complex object that is returned from evaluating the name */
+                            key: '@?',
+                            /* Replace the element content : true or false */
+                            replace: '@?'
+                        };
+                        this.link = function (scope, element, attrs) {
+                            var isReplace = (attrs['replace'] === 'true');
+                            var name = attrs['cdConstant'] || attrs['name'];
+                            var key = attrs['key'];
+                            var value;
+                            if (attrs['name'] && !name) {
+                                console.error('constant name is not provided');
+                            }
+                            if (name) {
+                                if (typeof name === 'string') {
+                                    value = _this.$injector.get(name);
+                                }
+                                else {
+                                    value = name;
+                                }
+                                // console.info(value);
+                                if (key != null && key !== '') {
+                                    // value = value[key];
+                                    // Support deep property reference using the 'key'
+                                    // e.g. key = x.y.z will be evaluated to value[x][y][z]
+                                    value = key.split('.').reduce(function (obj, i) { return obj[i]; }, value);
+                                    // console.warn(value);
+                                }
+                                else if (attrs['key']) {
+                                    console.warn('constant key is defined without a value');
+                                }
+                                // Check if we need to replace the element
+                                if (isReplace === true) {
+                                    element.replaceWith(value);
+                                }
+                                else {
+                                    element.text(value);
+                                }
+                            }
+                        };
+                        // console.log('constant component initilized');
+                    }
+                    return ConstantDirective;
+                }());
+                ConstantDirective.$inject = ['$injector'];
+                ConstantDirective.factory = function () {
+                    function instance($injector) {
+                        return new ConstantDirective($injector);
+                    }
+                    instance.$inject = ['$injector'];
+                    return instance;
+                };
+                angular.module('cedrus.ui.components.constant', [])
+                    .directive('cdConstant', ConstantDirective.factory());
+            })(constant = components.constant || (components.constant = {}));
+        })(components = ui.components || (ui.components = {}));
+    })(ui = cedrus.ui || (cedrus.ui = {}));
+})(cedrus || (cedrus = {}));
+
+/**
+ * @ngdoc module
  * @name cedrus.ui.components.dateRangePicker
  */
 /**
@@ -895,73 +895,6 @@ var cedrus;
         })(components = ui.components || (ui.components = {}));
     })(ui = cedrus.ui || (cedrus.ui = {}));
 })(cedrus || (cedrus = {}));
-
-var CdCalendar;
-(function (CdCalendar) {
-    var CalendarController = (function () {
-        CalendarController.$inject = ["$element"];
-        function CalendarController($element) {
-            this.$element = $element;
-            this.yearMap = [
-                [-4, -3, -2],
-                [-1, 0, 1],
-                [2, 3, 4],
-                [5, 6, 7]
-            ];
-            this.monthMap = [
-                [{ display: 'Jan', value: 'January' }, { display: 'Feb', value: 'February' }, { display: 'Mar', value: 'March' }],
-                [{ display: 'Apr', value: 'April' }, { display: 'May', value: 'May' }, { display: 'Jun', value: 'June' }],
-                [{ display: 'Jul', value: 'July' }, { display: 'Aug', value: 'August' }, { display: 'Sep', value: 'September' }],
-                [{ display: 'Oct', value: 'October' }, { display: 'Nov', value: 'November' }, { display: 'Dec', value: 'December' }]
-            ];
-        }
-        CalendarController.prototype.$onInit = function () {
-            this.initYear = new Date().getFullYear();
-            this.date = {
-                selYear: this.initYear,
-                selMonth: ''
-            };
-            this.showCal = false;
-        };
-        CalendarController.prototype.$postLink = function () {
-            this.inputEl = this.$element.find('input');
-            if (this.options && this.options.blockFreeTyping === true) {
-                this.inputEl.keydown(function (e) {
-                    e.preventDefault();
-                });
-            }
-        };
-        CalendarController.prototype.displayCal = function () {
-            this.showCal = !this.showCal;
-            if (this.showCal) {
-                this.inputEl.focus();
-            }
-        };
-        CalendarController.prototype.flipCal = function () {
-            this.yearSel = !this.yearSel;
-        };
-        CalendarController.prototype.setYear = function (num) {
-            if (!this.date.selYear)
-                this.date.selYear = this.initYear;
-            this.date.selYear += num;
-        };
-        CalendarController.prototype.setMonth = function (month) {
-            if (!this.date.selYear)
-                this.date.selYear = this.initYear;
-            this.date.selMonth = month;
-            this.ngModel.$setViewValue(this.date.selMonth + ' ' + this.date.selYear);
-            this.ngModel.$render();
-            this.selection = this.ngModel.$viewValue;
-            this.showCal = false;
-        };
-        return CalendarController;
-    }());
-    CalendarController.$inject = ['$element'];
-    CdCalendar.CalendarController = CalendarController;
-    angular
-        .module('cedrus.ui.components.calendar')
-        .controller('CalendarController', CalendarController);
-})(CdCalendar || (CdCalendar = {}));
 
 var CdCharts;
 (function (CdCharts) {
@@ -1534,6 +1467,73 @@ var CdCharts;
     angular.module('cedrus.ui.components.chart')
         .factory('pieChartService', function () { return new CdPieChartService(); });
 })(CdCharts || (CdCharts = {}));
+
+var CdCalendar;
+(function (CdCalendar) {
+    var CalendarController = (function () {
+        CalendarController.$inject = ["$element"];
+        function CalendarController($element) {
+            this.$element = $element;
+            this.yearMap = [
+                [-4, -3, -2],
+                [-1, 0, 1],
+                [2, 3, 4],
+                [5, 6, 7]
+            ];
+            this.monthMap = [
+                [{ display: 'Jan', value: 'January' }, { display: 'Feb', value: 'February' }, { display: 'Mar', value: 'March' }],
+                [{ display: 'Apr', value: 'April' }, { display: 'May', value: 'May' }, { display: 'Jun', value: 'June' }],
+                [{ display: 'Jul', value: 'July' }, { display: 'Aug', value: 'August' }, { display: 'Sep', value: 'September' }],
+                [{ display: 'Oct', value: 'October' }, { display: 'Nov', value: 'November' }, { display: 'Dec', value: 'December' }]
+            ];
+        }
+        CalendarController.prototype.$onInit = function () {
+            this.initYear = new Date().getFullYear();
+            this.date = {
+                selYear: this.initYear,
+                selMonth: ''
+            };
+            this.showCal = false;
+        };
+        CalendarController.prototype.$postLink = function () {
+            this.inputEl = this.$element.find('input');
+            if (this.options && this.options.blockFreeTyping === true) {
+                this.inputEl.keydown(function (e) {
+                    e.preventDefault();
+                });
+            }
+        };
+        CalendarController.prototype.displayCal = function () {
+            this.showCal = !this.showCal;
+            if (this.showCal) {
+                this.inputEl.focus();
+            }
+        };
+        CalendarController.prototype.flipCal = function () {
+            this.yearSel = !this.yearSel;
+        };
+        CalendarController.prototype.setYear = function (num) {
+            if (!this.date.selYear)
+                this.date.selYear = this.initYear;
+            this.date.selYear += num;
+        };
+        CalendarController.prototype.setMonth = function (month) {
+            if (!this.date.selYear)
+                this.date.selYear = this.initYear;
+            this.date.selMonth = month;
+            this.ngModel.$setViewValue(this.date.selMonth + ' ' + this.date.selYear);
+            this.ngModel.$render();
+            this.selection = this.ngModel.$viewValue;
+            this.showCal = false;
+        };
+        return CalendarController;
+    }());
+    CalendarController.$inject = ['$element'];
+    CdCalendar.CalendarController = CalendarController;
+    angular
+        .module('cedrus.ui.components.calendar')
+        .controller('CalendarController', CalendarController);
+})(CdCalendar || (CdCalendar = {}));
 
 var cedrus;
 (function (cedrus) {
