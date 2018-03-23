@@ -2,12 +2,12 @@
  * Cedrus UI
  * https://github.com/cedrusco/cedrus-ui
  * @license Copyright Cedrus 2016
- * v0.4.1
+ * v0.4.2
  */
 (function( window, angular, undefined ){
 "use strict";
 
-angular.module('cedrus.ui', ["ng","ngAnimate","ngAria","cedrus.ui.core","cedrus.ui.components.calendar","cedrus.ui.components.constant","cedrus.ui.components.chart","cedrus.ui.components.dateRangePicker","cedrus.ui.components.cdGroupedBarChart","cedrus.ui.components.sidebarFilter","cedrus.ui.components.export"]);
+angular.module('cedrus.ui', ["ng","ngAnimate","ngAria","cedrus.ui.core","cedrus.ui.components.calendar","cedrus.ui.components.chart","cedrus.ui.components.constant","cedrus.ui.components.dateRangePicker","cedrus.ui.components.cdGroupedBarChart","cedrus.ui.components.sidebarFilter","cedrus.ui.components.export"]);
 /**
  * @ngdoc module
  * @name cedrus.ui.core
@@ -321,118 +321,6 @@ var CdCalendar;
         .module('cedrus.ui.components.calendar', [])
         .component('cdCalendar', new CalendarComponent());
 })(CdCalendar || (CdCalendar = {}));
-
-/**
-     * @ngdoc module
-     * @name cedrus.ui.components.constant
-     * @description
-     * Constant module
-     */
-var cedrus;
-(function (cedrus) {
-    var ui;
-    (function (ui) {
-        var components;
-        (function (components) {
-            var constant;
-            (function (constant) {
-                'use strict';
-                /**
-                 * @ngdoc directive
-                 * @name cdConstant
-                 * @module cedrus.ui.components.constant
-                 * @description
-                 * This directive simplify accessing the application constants without using a controller. In general, it can extract the information from a defined constant, value, or service.
-                 *
-                 * @usage
-                 * ## Angular Constants sample
-                 * <hljs lang="js">
-                 *  angular.module('myApp')
-                 *      .constant('simple', 'Hello')
-                 *      .constant('complex', { address: {line1: 'Address line 1', line2: 'address line 2' }})
-                 * </hljs>
-                 *
-                 * ## HTML samples:
-                 * <hljs lang="html">
-                 *  # Use as attribute
-                 *  <span cd-constant="simple"> Show constant </span>
-                 *  <span cd-constant="simple" replace="true"></span>
-                 *
-                 *  ## Using attribute, and replace flag
-                 *  <div cd-constant="complex" key="address.line1" replace="false"><div>Other complex Text</div></div>
-                 *
-                 *  ## Use as Element
-                 *  <cd-constant name="simple"></cd-constant>
-                 *  <cd-constant name="complex" key="address.line2" replace="true"></cd-constant>
-                 * </hljs>
-                 */
-                var ConstantDirective = (function () {
-                    function ConstantDirective($injector) {
-                        var _this = this;
-                        this.$injector = $injector;
-                        this.restrict = 'EA';
-                        // No need to create isolated scope, we will use the attrs to refer to the bindings
-                        this.scope = {
-                            /* name of the Constant or service  */
-                            name: '@?',
-                            /* attribute key name of complex object that is returned from evaluating the name */
-                            key: '@?',
-                            /* Replace the element content : true or false */
-                            replace: '@?'
-                        };
-                        this.link = function (scope, element, attrs) {
-                            var isReplace = (attrs['replace'] === 'true');
-                            var name = attrs['cdConstant'] || attrs['name'];
-                            var key = attrs['key'];
-                            var value;
-                            if (attrs['name'] && !name) {
-                                console.error('constant name is not provided');
-                            }
-                            if (name) {
-                                if (typeof name === 'string') {
-                                    value = _this.$injector.get(name);
-                                }
-                                else {
-                                    value = name;
-                                }
-                                // console.info(value);
-                                if (key != null && key !== '') {
-                                    // value = value[key];
-                                    // Support deep property reference using the 'key'
-                                    // e.g. key = x.y.z will be evaluated to value[x][y][z]
-                                    value = key.split('.').reduce(function (obj, i) { return obj[i]; }, value);
-                                    // console.warn(value);
-                                }
-                                else if (attrs['key']) {
-                                    console.warn('constant key is defined without a value');
-                                }
-                                // Check if we need to replace the element
-                                if (isReplace === true) {
-                                    element.replaceWith(value);
-                                }
-                                else {
-                                    element.text(value);
-                                }
-                            }
-                        };
-                        // console.log('constant component initilized');
-                    }
-                    return ConstantDirective;
-                }());
-                ConstantDirective.$inject = ['$injector'];
-                ConstantDirective.factory = function () {
-                    function instance($injector) {
-                        return new ConstantDirective($injector);
-                    }
-                    instance.$inject = ['$injector'];
-                    return instance;
-                };
-                angular.module('cedrus.ui.components.constant', [])
-                    .directive('cdConstant', ConstantDirective.factory());
-            })(constant = components.constant || (components.constant = {}));
-        })(components = ui.components || (ui.components = {}));
-    })(ui = cedrus.ui || (cedrus.ui = {}));
-})(cedrus || (cedrus = {}));
 
 /**
  * @ngdoc module
@@ -806,6 +694,118 @@ var CdCharts;
     DrawService.$inject = ['$scope'];
     CdCharts.DrawService = DrawService;
 })(CdCharts || (CdCharts = {}));
+
+/**
+     * @ngdoc module
+     * @name cedrus.ui.components.constant
+     * @description
+     * Constant module
+     */
+var cedrus;
+(function (cedrus) {
+    var ui;
+    (function (ui) {
+        var components;
+        (function (components) {
+            var constant;
+            (function (constant) {
+                'use strict';
+                /**
+                 * @ngdoc directive
+                 * @name cdConstant
+                 * @module cedrus.ui.components.constant
+                 * @description
+                 * This directive simplify accessing the application constants without using a controller. In general, it can extract the information from a defined constant, value, or service.
+                 *
+                 * @usage
+                 * ## Angular Constants sample
+                 * <hljs lang="js">
+                 *  angular.module('myApp')
+                 *      .constant('simple', 'Hello')
+                 *      .constant('complex', { address: {line1: 'Address line 1', line2: 'address line 2' }})
+                 * </hljs>
+                 *
+                 * ## HTML samples:
+                 * <hljs lang="html">
+                 *  # Use as attribute
+                 *  <span cd-constant="simple"> Show constant </span>
+                 *  <span cd-constant="simple" replace="true"></span>
+                 *
+                 *  ## Using attribute, and replace flag
+                 *  <div cd-constant="complex" key="address.line1" replace="false"><div>Other complex Text</div></div>
+                 *
+                 *  ## Use as Element
+                 *  <cd-constant name="simple"></cd-constant>
+                 *  <cd-constant name="complex" key="address.line2" replace="true"></cd-constant>
+                 * </hljs>
+                 */
+                var ConstantDirective = (function () {
+                    function ConstantDirective($injector) {
+                        var _this = this;
+                        this.$injector = $injector;
+                        this.restrict = 'EA';
+                        // No need to create isolated scope, we will use the attrs to refer to the bindings
+                        this.scope = {
+                            /* name of the Constant or service  */
+                            name: '@?',
+                            /* attribute key name of complex object that is returned from evaluating the name */
+                            key: '@?',
+                            /* Replace the element content : true or false */
+                            replace: '@?'
+                        };
+                        this.link = function (scope, element, attrs) {
+                            var isReplace = (attrs['replace'] === 'true');
+                            var name = attrs['cdConstant'] || attrs['name'];
+                            var key = attrs['key'];
+                            var value;
+                            if (attrs['name'] && !name) {
+                                console.error('constant name is not provided');
+                            }
+                            if (name) {
+                                if (typeof name === 'string') {
+                                    value = _this.$injector.get(name);
+                                }
+                                else {
+                                    value = name;
+                                }
+                                // console.info(value);
+                                if (key != null && key !== '') {
+                                    // value = value[key];
+                                    // Support deep property reference using the 'key'
+                                    // e.g. key = x.y.z will be evaluated to value[x][y][z]
+                                    value = key.split('.').reduce(function (obj, i) { return obj[i]; }, value);
+                                    // console.warn(value);
+                                }
+                                else if (attrs['key']) {
+                                    console.warn('constant key is defined without a value');
+                                }
+                                // Check if we need to replace the element
+                                if (isReplace === true) {
+                                    element.replaceWith(value);
+                                }
+                                else {
+                                    element.text(value);
+                                }
+                            }
+                        };
+                        // console.log('constant component initilized');
+                    }
+                    return ConstantDirective;
+                }());
+                ConstantDirective.$inject = ['$injector'];
+                ConstantDirective.factory = function () {
+                    function instance($injector) {
+                        return new ConstantDirective($injector);
+                    }
+                    instance.$inject = ['$injector'];
+                    return instance;
+                };
+                angular.module('cedrus.ui.components.constant', [])
+                    .directive('cdConstant', ConstantDirective.factory());
+            })(constant = components.constant || (components.constant = {}));
+        })(components = ui.components || (ui.components = {}));
+    })(ui = cedrus.ui || (cedrus.ui = {}));
+})(cedrus || (cedrus = {}));
 
 /**
  * @ngdoc module
@@ -1727,151 +1727,6 @@ var CdgroupedBarChart;
         .controller('groupedBarChartController', GroupedBarChartController);
 })(CdgroupedBarChart || (CdgroupedBarChart = {}));
 
-/**
- * @ngdoc module
- * @name cedrus.ui.components.export
- * @description
- */
-/**
- * @ngdoc type
- * @name workbookOptions
- * @module cedrus.ui.components.export
- * @description
- * A reference to a export worksheet option. This reference contains a unique id for the
- * panel, along with the following properties:
- *
- *   - `columnWidth` - `{number}`: sets default column width for the cells of the workbook, can be overridden.
- *   - `cellDates` - `{boolean}`: boolen flag, defaults to false whether or not to use date parsers
- */
-var CdWorksheetExport;
-(function (CdWorksheetExport) {
-    /* @ngInject */
-    var WorksheetExportService = (function () {
-        WorksheetExportService.$inject = ["$filter"];
-        function WorksheetExportService($filter) {
-            this.$filter = $filter;
-        }
-        WorksheetExportService.prototype.s2ab = function (s) {
-            var buf = new ArrayBuffer(s.length);
-            var view = new Uint8Array(buf);
-            for (var i = 0; i < s.length; ++i) {
-                view[i] = s.charCodeAt(i) & 0xFF;
-            }
-            return buf;
-        };
-        WorksheetExportService.prototype.generateSheet = function (sheetData, name, options) {
-            var worksheet = {};
-            var range = {
-                s: {
-                    c: 0,
-                    r: 0
-                },
-                e: {
-                    c: sheetData.headers.length,
-                    r: 0
-                }
-            };
-            for (var H = 0; H < sheetData.headers.length; H++) {
-                var headerCell = {
-                    v: sheetData.headers[H].title,
-                    t: 's'
-                };
-                var headerCellRef = XLSX.utils.encode_cell({ c: H, r: 0 });
-                worksheet[headerCellRef] = headerCell;
-            }
-            // loop through data and encode each cell
-            for (var R = 0; R < sheetData.data.length; R++) {
-                // The first row is filled with the header info so cellRow number is R + 1
-                var cellRow = R + 1;
-                // increase # of rows in range if dataset extends it so that it will be included in output
-                if (range.e.r < cellRow) {
-                    range.e.r = cellRow;
-                }
-                // loop through columns within a given row and extract data
-                for (var C = 0; C < sheetData.headers.length; C++) {
-                    // create object to hold cell data.  default cell type is number
-                    var cell = {};
-                    // create address for cell
-                    var cellRef = XLSX.utils.encode_cell({ c: C, r: cellRow });
-                    // set cell value depending on type indicated in the headers currently only string or number supported
-                    if (sheetData.headers[C].type)
-                        cell.t = sheetData.headers[C].type;
-                    // if a cell value is not provided default the cell to zero
-                    var value = sheetData.data[R][sheetData.headers[C].key];
-                    cell.v = (value != null) ? value : '';
-                    // place the now completed cell at the calculated address
-                    worksheet[cellRef] = cell;
-                }
-            }
-            // set column widths (15 is default)
-            worksheet['!cols'] = sheetData.headers.map(function (header) {
-                if (!header.columnWidth)
-                    header.columnWidth = options.columnWidth || 15;
-                return {
-                    wch: header.columnWidth
-                };
-            });
-            worksheet['!ref'] = XLSX.utils.encode_range(range);
-            return {
-                sheetName: name,
-                sheet: worksheet
-            };
-        };
-        WorksheetExportService.prototype.generateWorkbook = function (dataSheets, filename, options) {
-            var _this = this;
-            if (!options)
-                options = {};
-            // override default options if provided
-            options = angular.extend({
-                bookType: 'xlsx',
-                bookSST: false,
-                type: 'binary'
-            }, options);
-            var workbook = {
-                Sheets: {},
-                Props: {},
-                SSF: {},
-                SheetNames: []
-            };
-            // if user provided a single worksheet wrap it in an Array
-            if (!Array.isArray(dataSheets))
-                dataSheets = [dataSheets];
-            // loop through each set of sheet data, generate the sheet and add it to the workbook
-            dataSheets.forEach(function (sheetData, index) {
-                var sheetName = sheetData.sheetName || 'sheet ' + index;
-                var sheet = _this.generateSheet(sheetData, sheetName, options);
-                workbook.SheetNames.push(sheet.sheetName);
-                workbook.Sheets[sheet.sheetName] = sheet.sheet;
-            });
-            this.exportWorkbook(workbook, options, filename);
-        };
-        WorksheetExportService.prototype.exportWorkbook = function (workbook, options, filename) {
-            workbook = XLSX.write(workbook, options);
-            workbook = this.s2ab(workbook);
-            var blob = new Blob([workbook]);
-            this.saveAs(blob, filename);
-        };
-        WorksheetExportService.prototype.saveAs = function (blob, filename) {
-            // TODO: switch to $window and $document, if possible
-            var link = document.createElement('a');
-            var url = window.URL.createObjectURL(blob);
-            document.body.appendChild(link);
-            link.setAttribute('style', 'display: none');
-            link.href = url;
-            link.download = filename;
-            link.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(link);
-        };
-        return WorksheetExportService;
-    }());
-    /* @ngInject */
-    WorksheetExportService.$inject = ['$filter'];
-    angular
-        .module('cedrus.ui.components.export', [])
-        .service('cdWorksheetExportService', WorksheetExportService);
-})(CdWorksheetExport || (CdWorksheetExport = {}));
-
 var cedrus;
 (function (cedrus) {
     var ui;
@@ -2019,8 +1874,153 @@ function checkboxHandler(currentFilterOption, updatedOption) {
     return currentFilterOption;
 }
 
+/**
+ * @ngdoc module
+ * @name cedrus.ui.components.export
+ * @description
+ */
+/**
+ * @ngdoc type
+ * @name workbookOptions
+ * @module cedrus.ui.components.export
+ * @description
+ * A reference to a export worksheet option. This reference contains a unique id for the
+ * panel, along with the following properties:
+ *
+ *   - `columnWidth` - `{number}`: sets default column width for the cells of the workbook, can be overridden.
+ *   - `cellDates` - `{boolean}`: boolen flag, defaults to false whether or not to use date parsers
+ */
+var CdWorksheetExport;
+(function (CdWorksheetExport) {
+    /* @ngInject */
+    var WorksheetExportService = (function () {
+        WorksheetExportService.$inject = ["$filter"];
+        function WorksheetExportService($filter) {
+            this.$filter = $filter;
+        }
+        WorksheetExportService.prototype.s2ab = function (s) {
+            var buf = new ArrayBuffer(s.length);
+            var view = new Uint8Array(buf);
+            for (var i = 0; i < s.length; ++i) {
+                view[i] = s.charCodeAt(i) & 0xFF;
+            }
+            return buf;
+        };
+        WorksheetExportService.prototype.generateSheet = function (sheetData, name, options) {
+            var worksheet = {};
+            var range = {
+                s: {
+                    c: 0,
+                    r: 0
+                },
+                e: {
+                    c: sheetData.headers.length,
+                    r: 0
+                }
+            };
+            for (var H = 0; H < sheetData.headers.length; H++) {
+                var headerCell = {
+                    v: sheetData.headers[H].title,
+                    t: 's'
+                };
+                var headerCellRef = XLSX.utils.encode_cell({ c: H, r: 0 });
+                worksheet[headerCellRef] = headerCell;
+            }
+            // loop through data and encode each cell
+            for (var R = 0; R < sheetData.data.length; R++) {
+                // The first row is filled with the header info so cellRow number is R + 1
+                var cellRow = R + 1;
+                // increase # of rows in range if dataset extends it so that it will be included in output
+                if (range.e.r < cellRow) {
+                    range.e.r = cellRow;
+                }
+                // loop through columns within a given row and extract data
+                for (var C = 0; C < sheetData.headers.length; C++) {
+                    // create object to hold cell data.  default cell type is number
+                    var cell = {};
+                    // create address for cell
+                    var cellRef = XLSX.utils.encode_cell({ c: C, r: cellRow });
+                    // set cell value depending on type indicated in the headers currently only string or number supported
+                    if (sheetData.headers[C].type)
+                        cell.t = sheetData.headers[C].type;
+                    // if a cell value is not provided default the cell to zero
+                    var value = sheetData.data[R][sheetData.headers[C].key];
+                    cell.v = (value != null) ? value : '';
+                    // place the now completed cell at the calculated address
+                    worksheet[cellRef] = cell;
+                }
+            }
+            // set column widths (15 is default)
+            worksheet['!cols'] = sheetData.headers.map(function (header) {
+                if (!header.columnWidth)
+                    header.columnWidth = options.columnWidth || 15;
+                return {
+                    wch: header.columnWidth
+                };
+            });
+            worksheet['!ref'] = XLSX.utils.encode_range(range);
+            return {
+                sheetName: name,
+                sheet: worksheet
+            };
+        };
+        WorksheetExportService.prototype.generateWorkbook = function (dataSheets, filename, options) {
+            var _this = this;
+            if (!options)
+                options = {};
+            // override default options if provided
+            options = angular.extend({
+                bookType: 'xlsx',
+                bookSST: false,
+                type: 'binary'
+            }, options);
+            var workbook = {
+                Sheets: {},
+                Props: {},
+                SSF: {},
+                SheetNames: []
+            };
+            // if user provided a single worksheet wrap it in an Array
+            if (!Array.isArray(dataSheets))
+                dataSheets = [dataSheets];
+            // loop through each set of sheet data, generate the sheet and add it to the workbook
+            dataSheets.forEach(function (sheetData, index) {
+                var sheetName = sheetData.sheetName || 'sheet ' + index;
+                var sheet = _this.generateSheet(sheetData, sheetName, options);
+                workbook.SheetNames.push(sheet.sheetName);
+                workbook.Sheets[sheet.sheetName] = sheet.sheet;
+            });
+            this.exportWorkbook(workbook, options, filename);
+        };
+        WorksheetExportService.prototype.exportWorkbook = function (workbook, options, filename) {
+            workbook = XLSX.write(workbook, options);
+            workbook = this.s2ab(workbook);
+            var blob = new Blob([workbook]);
+            this.saveAs(blob, filename);
+        };
+        WorksheetExportService.prototype.saveAs = function (blob, filename) {
+            // TODO: switch to $window and $document, if possible
+            var link = document.createElement('a');
+            var url = window.URL.createObjectURL(blob);
+            document.body.appendChild(link);
+            link.setAttribute('style', 'display: none');
+            link.href = url;
+            link.download = filename;
+            link.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(link);
+        };
+        return WorksheetExportService;
+    }());
+    /* @ngInject */
+    WorksheetExportService.$inject = ['$filter'];
+    angular
+        .module('cedrus.ui.components.export', [])
+        .service('cdWorksheetExportService', WorksheetExportService);
+})(CdWorksheetExport || (CdWorksheetExport = {}));
+
 angular.module('cedrus.ui').run(['$templateCache', function($templateCache) {$templateCache.put('components/calendar/calendar.tpl.html','<div class="container"><div class="hider" ng-click="vm.displayCal()" ng-show="vm.showCal"></div><div class="input-blocker" ng-click="vm.displayCal()" readonly="true"></div><input type="text" class="md-select" ng-model="vm.selection"><div ng-show="vm.showCal" class="panel"><div class="md-whiteframe-2dp"><div class="yearrow" layout="row" layout-align="space-between end"><md-button class="calbtn" ng-click="vm.setYear(-1)" ng-hide="vm.yearSel" aria-label="previous year"><i class="fa fa-chevron-left"></i></md-button><md-button class="calbtn" ng-click="vm.setYear(-12)" ng-show="vm.yearSel" aria-label="go back one page"><i class="fa fa-chevron-left"></i></md-button><md-button class="calbtn yearbtn" ng-click="vm.flipCal()" aria-label="swap between month and year select">{{vm.date.selYear || vm.initYear}}</md-button><md-button class="calbtn" ng-click="vm.setYear(1)" ng-hide="vm.yearSel" aria-label="next year"><i class="fa fa-chevron-right"></i></md-button><md-button class="calbtn" ng-click="vm.setYear(12)" ng-show="vm.yearSel" aria-label="go forward by one page"><i class="fa fa-chevron-right"></i></md-button></div><div layout="row" ng-repeat="monthRow in vm.monthMap" ng-hide="vm.yearSel"><md-button class="calbtn monthSelect" ng-repeat="month in monthRow" ng-click="vm.setMonth(month.value)" aria-label="choose {{month.value}}">{{month.display}}</md-button></div><div layout="row" ng-repeat="yearRow in vm.yearMap" ng-show="vm.yearSel"><md-button class="calbtn yearSelect" ng-repeat="year in yearRow" ng-click="vm.flipCal(); vm.setYear(year)" aria-label="choose {{year}}">{{(vm.date.selYear||vm.initYear)+year}}</md-button></div></div></div></div>');
 $templateCache.put('components/date-range-picker/date-range-picker.tpl.html','<div class="cd-date-range-picker" layout="column"><form name="vm.form" class="ng-cloak" layout="{{ ::vm.options.layout }}"><md-datepicker name="startDate" ng-model="vm.ngModel.$modelValue.startDate" ng-required="vm.shouldRequire(\'startDate\')" md-placeholder="{{ vm.startPlaceholder(vm.useDateRange) }}" md-min-date="vm.options.startDate.min || false" md-max-date="vm.ngModel.$modelValue.endDate || vm.options.startDate.max || false" ng-change="vm.dateChanged()" ng-model-options="vm.ngModelOptions" class="startDate" ng-class="{\n                        \'hide-all\' : vm.options.hideIcons == \'all\',\n                        \'hide-calendar\' : vm.options.hideIcons == \'calendar\',\n                        \'hide-triangle\' : vm.options.hideIcons == \'triangle\'\n                    }"></md-datepicker><md-datepicker name="endDate" ng-model="vm.ngModel.$modelValue.endDate" ng-required="vm.shouldRequire(\'endDate\')" ng-if="vm.useDateRange" md-placeholder="{{ vm.options.endDate.placeholder }}" md-min-date="vm.ngModel.$modelValue.startDate" md-max-date="vm.options.endDate.max" ng-change="vm.dateChanged()" ng-model-options="vm.ngModelOptions" class="endDate" ng-class="{\n                        \'hidden\': !vm.useDateRange,\n                        \'hide-all\' : vm.options.hideIcons == \'all\',\n                        \'hide-calendar\' : vm.options.hideIcons == \'calendar\',\n                        \'hide-triangle\' : vm.options.hideIcons == \'triangle\'\n                    }" ng-cloak></md-datepicker></form><span flex><a ng-if="(vm.options.toggleLink) ? vm.options.toggleLink.show : true" class="toggle-link" ng-class="{ \'float-right\':  vm.options.toggleLink.align == \'right\',\n                               \'float-left\':  vm.options.toggleLink.align == \'left\'}" ng-click="vm.toggleDateRange(vm.form)">{{ vm.getToggleDateRangeText(vm.useDateRange) }}</a></span><div class="error-div" ng-if="vm.form.$error && vm.form.$dirty"><span ng-if="vm.form.startDate.$error.required">{{ vm.useDateRange ? vm.options.errorMessages.startRequired : vm.options.errorMessages.required }} </span><span ng-if="vm.form.endDate.$error.required">{{ vm.options.errorMessages.endRequired }}</span></div></div>');
 $templateCache.put('components/grouped-bar-chart/grouped-bar-chart.tpl.html','<div class="cd-grouped-bar-chart"><div ng-hide="vm.showData()"><div layout="row" layout-fill layout-align="center center" class="no-data"><span>There are no active tasks.</span></div></div><div ng-show="vm.showData()"><div ng-repeat="group in vm.groupDataKeys"><div layout="row" class="group-item"><div layout="column"><md-icon ng-hide="vm.expandField(group)" md-font-icon="fa fa-caret-right" ng-click="vm.setExpandedField(group)" ng-if="vm.options.subFields"></md-icon><md-icon ng-show="vm.expandField(group)" md-font-icon="fa fa-caret-down" ng-click="vm.setExpandedField(group, true)" ng-if="vm.options.subFields"></md-icon></div><div layout="column" flex><div layout="row" layout-align="space-around none"><div flex="60" layout-align="start center">{{group}}</div><div flex="20">Count: {{vm.groupData[group].length}}</div><div flex="20">{{vm.groupData[group].length*100/vm.totalKeys | number:0}}%</div></div></div></div><div layout="row" flex class="line-color"><div ng-style="{width:vm.groupData[group].length*100/vm.totalKeys + \'%\', \'background\': vm.getColor($index, group)}" class="red-line"></div></div><div class="data-container" ng-show="vm.expandField(group)"><div layout="column" ng-show="vm.expandField(group)" ng-if="vm.options.subFields"><div ng-repeat="el in vm.groupData[group]"><div ng-include="vm.options.extendedTemplate || \'lineChartSingleItemExpanded\'"></div></div></div></div></div><div layout="row" layout-align="end none" class="total">Total Count:{{vm.totalKeys}}</div></div></div><script type="text/ng-template" id="lineChartSingleItemExpanded"><div class="panel" layout="column" layout-align="center none">\n        <div layout="row" layout-align="space-between none" class="data-row">\n            <div ng-repeat="(field, displayText ) in vm.options.subFields">\n                <span class="bold-text">{{displayText}}</span>\n                <span>{{el[field]}}</span>\n            </div>\n        </div>\n    </div></script>');
 $templateCache.put('components/sidebar-filter/sidebar-filter.tpl.html','<!--implemenation for user provided custom type/templates--><!--change naming to filter-tree, side-filter towards end--><div class="cd-sidebar-filter"><div ng-repeat="group in vm.filterGroups track by $index" ng-class="(vm.groupLevelClasses + (group.customClass ? \' \' + group.customClass : \'\') )"><div ng-if="!vm.options.isFlat"><md-button ng-click="vm.toggleExpand(group)" class="md-icon-button" aria-label="expand"><md-icon md-font-set="fa" md-font-icon="fa-chevron-right" ng-class="(group.isExpanded  !== false )? \'fa-chevron-down\': \'fa-chevron-right\'"></md-icon></md-button><span>{{ ::vm.processTitle(group, 0) }}</span></div><ul ng-show="group.isExpanded !== false" layout="column" ng-repeat="(filterName, filter) in vm.filters[group.key] track by filterName" ng-class="(vm.filterLevelClasses + (filter.customClass ? \' \' + filter.customClass : \'\'))" ng-class="{ cdFilterFlat : vm.options.isFlat}"><li><div><md-button ng-click="vm.toggleExpand(filter)" class="md-icon-button" aria-label="expand"><md-icon md-font-set="fa" md-font-icon="fa-chevron-right" ng-class="(filter.isExpanded  !== false )? \'fa-chevron-down\': \'fa-chevron-right\'"></md-icon></md-button><span>{{::vm.processTitle(filter, 1)}}</span><ul ng-show="filter.isExpanded !== false"><div ng-if="filter.type === \'checkbox\'" ng-include="\'cdCheckBoxFilter\'"></div><div ng-if="filter.type !== \'checkbox\'" ng-include="vm.customFields[filter.type].template"></div></ul></div></li></ul></div></div><script type="text/ng-template" id="cdCheckBoxFilter"><li ng-repeat="(optionName, option) in filter.options track by optionName" ng-class="(vm.optionLevelClasses + (option.customClass ? \' \' + option.customClass : \'\'))">\n        <md-checkbox ng-model="option.isSelected" ng-change="vm.changeFilter(filter, optionName, $index)" class="md-primary" ng-model-options="{debounce: 250}"\n            aria-label="{{::vm.processTitle(option, 2)}}">\n            <span>{{::vm.processTitle(option, 2)}}</span>\n        </md-checkbox>\n    </li></script>');}]);
-})(window, window.angular);;window.cedrusUI={version:{full: "0.4.1"}};
+})(window, window.angular);;window.cedrusUI={version:{full: "0.4.2"}};
