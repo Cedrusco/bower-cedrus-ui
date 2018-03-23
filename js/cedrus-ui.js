@@ -2,12 +2,12 @@
  * Cedrus UI
  * https://github.com/cedrusco/cedrus-ui
  * @license Copyright Cedrus 2016
- * v0.4.0
+ * v0.3.6
  */
 (function( window, angular, undefined ){
 "use strict";
 
-angular.module('cedrus.ui', ["ng","ngAnimate","ngAria","cedrus.ui.core","cedrus.ui.components.calendar","cedrus.ui.components.constant","cedrus.ui.components.chart","cedrus.ui.components.dateRangePicker","cedrus.ui.components.cdGroupedBarChart","cedrus.ui.components.sidebarFilter","cedrus.ui.components.export"]);
+angular.module('cedrus.ui', ["ng","ngAnimate","ngAria","cedrus.ui.core","cedrus.ui.components.calendar","cedrus.ui.components.chart","cedrus.ui.components.constant","cedrus.ui.components.cdGroupedBarChart","cedrus.ui.components.dateRangePicker","cedrus.ui.components.sidebarFilter","cedrus.ui.components.export"]);
 /**
  * @ngdoc module
  * @name cedrus.ui.core
@@ -321,118 +321,6 @@ var CdCalendar;
         .module('cedrus.ui.components.calendar', [])
         .component('cdCalendar', new CalendarComponent());
 })(CdCalendar || (CdCalendar = {}));
-
-/**
-     * @ngdoc module
-     * @name cedrus.ui.components.constant
-     * @description
-     * Constant module
-     */
-var cedrus;
-(function (cedrus) {
-    var ui;
-    (function (ui) {
-        var components;
-        (function (components) {
-            var constant;
-            (function (constant) {
-                'use strict';
-                /**
-                 * @ngdoc directive
-                 * @name cdConstant
-                 * @module cedrus.ui.components.constant
-                 * @description
-                 * This directive simplify accessing the application constants without using a controller. In general, it can extract the information from a defined constant, value, or service.
-                 *
-                 * @usage
-                 * ## Angular Constants sample
-                 * <hljs lang="js">
-                 *  angular.module('myApp')
-                 *      .constant('simple', 'Hello')
-                 *      .constant('complex', { address: {line1: 'Address line 1', line2: 'address line 2' }})
-                 * </hljs>
-                 *
-                 * ## HTML samples:
-                 * <hljs lang="html">
-                 *  # Use as attribute
-                 *  <span cd-constant="simple"> Show constant </span>
-                 *  <span cd-constant="simple" replace="true"></span>
-                 *
-                 *  ## Using attribute, and replace flag
-                 *  <div cd-constant="complex" key="address.line1" replace="false"><div>Other complex Text</div></div>
-                 *
-                 *  ## Use as Element
-                 *  <cd-constant name="simple"></cd-constant>
-                 *  <cd-constant name="complex" key="address.line2" replace="true"></cd-constant>
-                 * </hljs>
-                 */
-                var ConstantDirective = (function () {
-                    function ConstantDirective($injector) {
-                        var _this = this;
-                        this.$injector = $injector;
-                        this.restrict = 'EA';
-                        // No need to create isolated scope, we will use the attrs to refer to the bindings
-                        this.scope = {
-                            /* name of the Constant or service  */
-                            name: '@?',
-                            /* attribute key name of complex object that is returned from evaluating the name */
-                            key: '@?',
-                            /* Replace the element content : true or false */
-                            replace: '@?'
-                        };
-                        this.link = function (scope, element, attrs) {
-                            var isReplace = (attrs['replace'] === 'true');
-                            var name = attrs['cdConstant'] || attrs['name'];
-                            var key = attrs['key'];
-                            var value;
-                            if (attrs['name'] && !name) {
-                                console.error('constant name is not provided');
-                            }
-                            if (name) {
-                                if (typeof name === 'string') {
-                                    value = _this.$injector.get(name);
-                                }
-                                else {
-                                    value = name;
-                                }
-                                // console.info(value);
-                                if (key != null && key !== '') {
-                                    // value = value[key];
-                                    // Support deep property reference using the 'key'
-                                    // e.g. key = x.y.z will be evaluated to value[x][y][z]
-                                    value = key.split('.').reduce(function (obj, i) { return obj[i]; }, value);
-                                    // console.warn(value);
-                                }
-                                else if (attrs['key']) {
-                                    console.warn('constant key is defined without a value');
-                                }
-                                // Check if we need to replace the element
-                                if (isReplace === true) {
-                                    element.replaceWith(value);
-                                }
-                                else {
-                                    element.text(value);
-                                }
-                            }
-                        };
-                        // console.log('constant component initilized');
-                    }
-                    return ConstantDirective;
-                }());
-                ConstantDirective.$inject = ['$injector'];
-                ConstantDirective.factory = function () {
-                    function instance($injector) {
-                        return new ConstantDirective($injector);
-                    }
-                    instance.$inject = ['$injector'];
-                    return instance;
-                };
-                angular.module('cedrus.ui.components.constant', [])
-                    .directive('cdConstant', ConstantDirective.factory());
-            })(constant = components.constant || (components.constant = {}));
-        })(components = ui.components || (ui.components = {}));
-    })(ui = cedrus.ui || (cedrus.ui = {}));
-})(cedrus || (cedrus = {}));
 
 /**
  * @ngdoc module
@@ -808,6 +696,138 @@ var CdCharts;
 })(CdCharts || (CdCharts = {}));
 
 /**
+     * @ngdoc module
+     * @name cedrus.ui.components.constant
+     * @description
+     * Constant module
+     */
+var cedrus;
+(function (cedrus) {
+    var ui;
+    (function (ui) {
+        var components;
+        (function (components) {
+            var constant;
+            (function (constant) {
+                'use strict';
+                /**
+                 * @ngdoc directive
+                 * @name cdConstant
+                 * @module cedrus.ui.components.constant
+                 * @description
+                 * This directive simplify accessing the application constants without using a controller. In general, it can extract the information from a defined constant, value, or service.
+                 *
+                 * @usage
+                 * ## Angular Constants sample
+                 * <hljs lang="js">
+                 *  angular.module('myApp')
+                 *      .constant('simple', 'Hello')
+                 *      .constant('complex', { address: {line1: 'Address line 1', line2: 'address line 2' }})
+                 * </hljs>
+                 *
+                 * ## HTML samples:
+                 * <hljs lang="html">
+                 *  # Use as attribute
+                 *  <span cd-constant="simple"> Show constant </span>
+                 *  <span cd-constant="simple" replace="true"></span>
+                 *
+                 *  ## Using attribute, and replace flag
+                 *  <div cd-constant="complex" key="address.line1" replace="false"><div>Other complex Text</div></div>
+                 *
+                 *  ## Use as Element
+                 *  <cd-constant name="simple"></cd-constant>
+                 *  <cd-constant name="complex" key="address.line2" replace="true"></cd-constant>
+                 * </hljs>
+                 */
+                var ConstantDirective = (function () {
+                    function ConstantDirective($injector) {
+                        var _this = this;
+                        this.$injector = $injector;
+                        this.restrict = 'EA';
+                        // No need to create isolated scope, we will use the attrs to refer to the bindings
+                        this.scope = {
+                            /* name of the Constant or service  */
+                            name: '@?',
+                            /* attribute key name of complex object that is returned from evaluating the name */
+                            key: '@?',
+                            /* Replace the element content : true or false */
+                            replace: '@?'
+                        };
+                        this.link = function (scope, element, attrs) {
+                            var isReplace = (attrs['replace'] === 'true');
+                            var name = attrs['cdConstant'] || attrs['name'];
+                            var key = attrs['key'];
+                            var value;
+                            if (attrs['name'] && !name) {
+                                console.error('constant name is not provided');
+                            }
+                            if (name) {
+                                if (typeof name === 'string') {
+                                    value = _this.$injector.get(name);
+                                }
+                                else {
+                                    value = name;
+                                }
+                                // console.info(value);
+                                if (key != null && key !== '') {
+                                    // value = value[key];
+                                    // Support deep property reference using the 'key'
+                                    // e.g. key = x.y.z will be evaluated to value[x][y][z]
+                                    value = key.split('.').reduce(function (obj, i) { return obj[i]; }, value);
+                                    // console.warn(value);
+                                }
+                                else if (attrs['key']) {
+                                    console.warn('constant key is defined without a value');
+                                }
+                                // Check if we need to replace the element
+                                if (isReplace === true) {
+                                    element.replaceWith(value);
+                                }
+                                else {
+                                    element.text(value);
+                                }
+                            }
+                        };
+                        // console.log('constant component initilized');
+                    }
+                    return ConstantDirective;
+                }());
+                ConstantDirective.$inject = ['$injector'];
+                ConstantDirective.factory = function () {
+                    function instance($injector) {
+                        return new ConstantDirective($injector);
+                    }
+                    instance.$inject = ['$injector'];
+                    return instance;
+                };
+                angular.module('cedrus.ui.components.constant', [])
+                    .directive('cdConstant', ConstantDirective.factory());
+            })(constant = components.constant || (components.constant = {}));
+        })(components = ui.components || (ui.components = {}));
+    })(ui = cedrus.ui || (cedrus.ui = {}));
+})(cedrus || (cedrus = {}));
+
+var CdgroupedBarChart;
+(function (CdgroupedBarChart) {
+    var GroupedBarChartComponent = (function () {
+        function GroupedBarChartComponent() {
+            this.bindings = {
+                data: '=',
+                options: '='
+            };
+            this.templateUrl = 'components/grouped-bar-chart/grouped-bar-chart.tpl.html';
+            this.controller = 'groupedBarChartController';
+            this.controllerAs = 'vm';
+            this.transclude = true;
+        }
+        return GroupedBarChartComponent;
+    }());
+    angular
+        .module('cedrus.ui.components.cdGroupedBarChart', [])
+        .component('cdGroupedBarChart', new GroupedBarChartComponent());
+})(CdgroupedBarChart || (CdgroupedBarChart = {}));
+
+/**
  * @ngdoc module
  * @name cedrus.ui.components.dateRangePicker
  */
@@ -848,26 +868,6 @@ var cedrus;
         })(components = ui.components || (ui.components = {}));
     })(ui = cedrus.ui || (cedrus.ui = {}));
 })(cedrus || (cedrus = {}));
-
-var CdgroupedBarChart;
-(function (CdgroupedBarChart) {
-    var GroupedBarChartComponent = (function () {
-        function GroupedBarChartComponent() {
-            this.bindings = {
-                data: '=',
-                options: '='
-            };
-            this.templateUrl = 'components/grouped-bar-chart/grouped-bar-chart.tpl.html';
-            this.controller = 'groupedBarChartController';
-            this.controllerAs = 'vm';
-            this.transclude = true;
-        }
-        return GroupedBarChartComponent;
-    }());
-    angular
-        .module('cedrus.ui.components.cdGroupedBarChart', [])
-        .component('cdGroupedBarChart', new GroupedBarChartComponent());
-})(CdgroupedBarChart || (CdgroupedBarChart = {}));
 
 var cedrus;
 (function (cedrus) {
@@ -1536,111 +1536,6 @@ var CdCharts;
         .factory('pieChartService', function () { return new CdPieChartService(); });
 })(CdCharts || (CdCharts = {}));
 
-var cedrus;
-(function (cedrus) {
-    var ui;
-    (function (ui) {
-        var components;
-        (function (components) {
-            var dateRangePicker;
-            (function (dateRangePicker) {
-                var DateRangePickerController = (function () {
-                    DateRangePickerController.$inject = ["$q", "$element"];
-                    function DateRangePickerController($q, $element) {
-                        this.$q = $q;
-                        this.$element = $element;
-                        this.today = new Date();
-                        this.defaultOptions = {
-                            useDateRange: false,
-                            layout: 'row',
-                            hideIcons: undefined,
-                            toggleLink: {
-                                show: true,
-                                align: 'left'
-                            },
-                            startDate: {
-                                min: false,
-                                rangePlaceholder: 'Date From',
-                                singleDatePlaceholder: 'Date'
-                            },
-                            endDate: {
-                                max: false,
-                                placeholder: 'Date To'
-                            },
-                            errorMessages: {
-                                startRequired: 'Date From is required when using a date range.',
-                                endRequired: 'Date To is required when using a date range.'
-                            }
-                        };
-                    }
-                    DateRangePickerController.prototype.$onInit = function () {
-                        var model = angular.extend({}, this.ngModel.$modelValue);
-                        this.$startInputContainer = this.$element.find('.startDate');
-                        this.options = angular.extend({}, this.defaultOptions, this.options);
-                        if (this.form) {
-                            this.parentForm = this.form.$$parentForm;
-                        }
-                        ;
-                        this.parentFormSubmitted = false;
-                        this.useDateRange = !!this.options.useDateRange;
-                    };
-                    DateRangePickerController.prototype.$onChanges = function (changes) {
-                        if (changes.ngModel && !changes.ngModel.isFirstChange()) {
-                            if (typeof changes.ngModel.currentValue.$modelValue !== 'object' || Array.isArray(changes.ngModel.currentValue.$modelValue)) {
-                                console.error('ngModel needs to be an empty object or with these properties {startDate, endDate}');
-                            }
-                        }
-                    };
-                    DateRangePickerController.prototype.dateChanged = function () {
-                        if (this.ngChange)
-                            this.ngChange();
-                    };
-                    // click function that toggles daterange on/off and runa
-                    DateRangePickerController.prototype.toggleDateRange = function (form) {
-                        if (this.useDateRange) {
-                            this.useDateRange = false;
-                            this.endDate = undefined;
-                            form.startDate.$setPristine();
-                            form.$$parentForm.$submitted = false;
-                            this.ngModel.$modelValue.endDate = null;
-                            form.endDate.$setPristine();
-                            this.$startInputContainer.removeClass('md-datepicker-invalid');
-                        }
-                        else {
-                            // console.log(this.form.endDate);
-                            this.useDateRange = true;
-                        }
-                    };
-                    DateRangePickerController.prototype.getToggleDateRangeText = function (useDateRange) {
-                        return useDateRange ?
-                            'Use Single Date' :
-                            'Use Date Range';
-                    };
-                    DateRangePickerController.prototype.startPlaceholder = function (useDateRange) {
-                        return useDateRange ?
-                            this.options.startDate.rangePlaceholder :
-                            this.options.startDate.singleDatePlaceholder;
-                    };
-                    // need to put in cd-form-on-change directive
-                    DateRangePickerController.prototype.formOnChange = function (form) {
-                        if (form && this.parentForm) {
-                            this.parentFormSubmitted = this.parentForm.$submitted;
-                        }
-                    };
-                    DateRangePickerController.prototype.shouldRequire = function (useDateRange, date) {
-                        return useDateRange && date;
-                    };
-                    return DateRangePickerController;
-                }());
-                DateRangePickerController.$inject = ['$q', '$element'];
-                angular
-                    .module('cedrus.ui.components.dateRangePicker')
-                    .controller('CdDateRangePicker', DateRangePickerController);
-            })(dateRangePicker = components.dateRangePicker || (components.dateRangePicker = {}));
-        })(components = ui.components || (ui.components = {}));
-    })(ui = cedrus.ui || (cedrus.ui = {}));
-})(cedrus || (cedrus = {}));
-
 var CdgroupedBarChart;
 (function (CdgroupedBarChart) {
     var GroupedBarChartController = (function () {
@@ -1713,6 +1608,124 @@ var CdgroupedBarChart;
         .module('cedrus.ui.components.cdGroupedBarChart')
         .controller('groupedBarChartController', GroupedBarChartController);
 })(CdgroupedBarChart || (CdgroupedBarChart = {}));
+
+var cedrus;
+(function (cedrus) {
+    var ui;
+    (function (ui) {
+        var components;
+        (function (components) {
+            var dateRangePicker;
+            (function (dateRangePicker) {
+                var DateRangePickerController = (function () {
+                    DateRangePickerController.$inject = ["$q", "$element"];
+                    function DateRangePickerController($q, $element) {
+                        this.$q = $q;
+                        this.$element = $element;
+                        this.today = new Date();
+                        this.defaultOptions = {
+                            useDateRange: false,
+                            layout: 'row',
+                            hideIcons: undefined,
+                            toggleLink: {
+                                show: true,
+                                align: 'left'
+                            },
+                            startDate: {
+                                rangePlaceholder: 'Date From',
+                                singleDatePlaceholder: 'Date'
+                            },
+                            endDate: {
+                                placeholder: 'Date To'
+                            },
+                            errorMessages: {
+                                startRequired: 'Start Date is required',
+                                endRequired: 'To Date is required',
+                                required: 'Date is required'
+                            }
+                        };
+                    }
+                    DateRangePickerController.prototype.$onInit = function () {
+                        var model = angular.extend({}, this.ngModel.$modelValue);
+                        this.$startInputContainer = this.$element.find('.startDate');
+                        this.options = angular.extend({}, this.defaultOptions, this.options);
+                        this.options.errorMessages = angular.extend({}, this.defaultOptions.errorMessages, this.options.errorMessages);
+                        if (this.form) {
+                            this.parentForm = this.form.$$parentForm;
+                        }
+                        ;
+                        this.parentFormSubmitted = false;
+                        this.useDateRange = !!this.options.useDateRange;
+                    };
+                    DateRangePickerController.prototype.$onChanges = function (changes) {
+                        if (changes.ngModel && !changes.ngModel.isFirstChange()) {
+                            if (typeof changes.ngModel.currentValue.$modelValue !== 'object' || Array.isArray(changes.ngModel.currentValue.$modelValue)) {
+                                console.error('ngModel needs to be an empty object or with these properties {startDate, endDate}');
+                            }
+                        }
+                    };
+                    DateRangePickerController.prototype.dateChanged = function () {
+                        if (this.ngChange)
+                            this.ngChange();
+                    };
+                    // click function that toggles daterange on/off and runa
+                    DateRangePickerController.prototype.toggleDateRange = function (form) {
+                        if (this.useDateRange) {
+                            this.useDateRange = false;
+                            this.endDate = undefined;
+                            form.startDate.$setPristine();
+                            form.$$parentForm.$submitted = false;
+                            this.ngModel.$modelValue.endDate = null;
+                            form.endDate.$setPristine();
+                            this.$startInputContainer.removeClass('md-datepicker-invalid');
+                        }
+                        else {
+                            // console.log(this.form.endDate);
+                            this.useDateRange = true;
+                        }
+                    };
+                    DateRangePickerController.prototype.getToggleDateRangeText = function (useDateRange) {
+                        return useDateRange ?
+                            'Use Single Date' :
+                            'Use Date Range';
+                    };
+                    DateRangePickerController.prototype.startPlaceholder = function (useDateRange) {
+                        return useDateRange ?
+                            this.options.startDate.rangePlaceholder :
+                            this.options.startDate.singleDatePlaceholder;
+                    };
+                    // need to put in cd-form-on-change directive
+                    DateRangePickerController.prototype.formOnChange = function (form) {
+                        if (form && this.parentForm) {
+                            this.parentFormSubmitted = this.parentForm.$submitted;
+                        }
+                    };
+                    DateRangePickerController.prototype.shouldRequire = function (section) {
+                        // required flage false
+                        if (!this.options.required)
+                            return false;
+                        var modelValue = this.ngModel.$modelValue;
+                        // apply rules for date range
+                        if (this.useDateRange) {
+                            // require true and require both dates is true
+                            if (this.options.requireBothDates)
+                                return true;
+                            else
+                                return !modelValue.startDate && !modelValue.endDate;
+                        }
+                        else
+                            return true;
+                    };
+                    return DateRangePickerController;
+                }());
+                DateRangePickerController.$inject = ['$q', '$element'];
+                angular
+                    .module('cedrus.ui.components.dateRangePicker')
+                    .controller('CdDateRangePicker', DateRangePickerController);
+            })(dateRangePicker = components.dateRangePicker || (components.dateRangePicker = {}));
+        })(components = ui.components || (ui.components = {}));
+    })(ui = cedrus.ui || (cedrus.ui = {}));
+})(cedrus || (cedrus = {}));
 
 var cedrus;
 (function (cedrus) {
@@ -2007,7 +2020,7 @@ var CdWorksheetExport;
 })(CdWorksheetExport || (CdWorksheetExport = {}));
 
 angular.module('cedrus.ui').run(['$templateCache', function($templateCache) {$templateCache.put('components/calendar/calendar.tpl.html','<div class="container"><div class="hider" ng-click="vm.displayCal()" ng-show="vm.showCal"></div><div class="input-blocker" ng-click="vm.displayCal()" readonly="true"></div><input type="text" class="md-select" ng-model="vm.selection"><div ng-show="vm.showCal" class="panel"><div class="md-whiteframe-2dp"><div class="yearrow" layout="row" layout-align="space-between end"><md-button class="calbtn" ng-click="vm.setYear(-1)" ng-hide="vm.yearSel" aria-label="previous year"><i class="fa fa-chevron-left"></i></md-button><md-button class="calbtn" ng-click="vm.setYear(-12)" ng-show="vm.yearSel" aria-label="go back one page"><i class="fa fa-chevron-left"></i></md-button><md-button class="calbtn yearbtn" ng-click="vm.flipCal()" aria-label="swap between month and year select">{{vm.date.selYear || vm.initYear}}</md-button><md-button class="calbtn" ng-click="vm.setYear(1)" ng-hide="vm.yearSel" aria-label="next year"><i class="fa fa-chevron-right"></i></md-button><md-button class="calbtn" ng-click="vm.setYear(12)" ng-show="vm.yearSel" aria-label="go forward by one page"><i class="fa fa-chevron-right"></i></md-button></div><div layout="row" ng-repeat="monthRow in vm.monthMap" ng-hide="vm.yearSel"><md-button class="calbtn monthSelect" ng-repeat="month in monthRow" ng-click="vm.setMonth(month.value)" aria-label="choose {{month.value}}">{{month.display}}</md-button></div><div layout="row" ng-repeat="yearRow in vm.yearMap" ng-show="vm.yearSel"><md-button class="calbtn yearSelect" ng-repeat="year in yearRow" ng-click="vm.flipCal(); vm.setYear(year)" aria-label="choose {{year}}">{{(vm.date.selYear||vm.initYear)+year}}</md-button></div></div></div></div>');
-$templateCache.put('components/date-range-picker/date-range-picker.tpl.html','<div class="cd-date-range-picker" layout="column"><div ng-form="vm.form" class="ng-cloak" layout="{{ ::vm.options.layout }}"><md-datepicker name="startDate" ng-model="vm.ngModel.$modelValue.startDate" ng-required="vm.shouldRequire(vm.useDateRange, vm.ngModel.$modelValue.endDate)" md-placeholder="{{ vm.startPlaceholder(vm.useDateRange) }}" md-min-date="vm.options.startDate.min || false" md-max-date="vm.ngModel.$modelValue.endDate || vm.options.startDate.max || false" ng-change="vm.dateChanged()" ng-model-options="vm.ngModelOptions" class="startDate" ng-class="{\n                        \'hide-all\' : vm.options.hideIcons == \'all\',\n                        \'hide-calendar\' : vm.options.hideIcons == \'calendar\',\n                        \'hide-triangle\' : vm.options.hideIcons == \'triangle\'\n                    }"></md-datepicker><md-datepicker name="endDate" ng-model="vm.ngModel.$modelValue.endDate" ng-required="vm.shouldRequire(vm.useDateRange, vm.ngModel.$modelValue.startDate)" ng-show="vm.useDateRange" md-placeholder="{{ vm.options.endDate.placeholder }}" md-min-date="vm.ngModel.$modelValue.startDate" md-max-date="vm.options.endDate.max" ng-change="vm.dateChanged()" ng-model-options="vm.ngModelOptions" class="endDate" ng-class="{\n                        \'hidden\': !vm.useDateRange,\n                        \'hide-all\' : vm.options.hideIcons == \'all\',\n                        \'hide-calendar\' : vm.options.hideIcons == \'calendar\',\n                        \'hide-triangle\' : vm.options.hideIcons == \'triangle\'\n                    }" ng-cloak></md-datepicker></div><span flex><a ng-if="(vm.options.toggleLink) ? vm.options.toggleLink.show : true" class="toggle-link" ng-class="{ \'float-right\':  vm.options.toggleLink.align == \'right\',\n                               \'float-left\':  vm.options.toggleLink.align == \'left\'}" ng-click="vm.toggleDateRange(vm.form)">{{ vm.getToggleDateRangeText(vm.useDateRange) }}</a></span><div class="error-div" ng-if="vm.useDateRange && vm.form.$error && vm.parentFormSubmitted"><span ng-if="vm.form.startDate.$error.required">{{ vm.options.errorMessages.startRequired }} </span><span ng-if="vm.form.endDate.$error.required">{{ vm.options.errorMessages.endRequired }}</span></div></div>');
 $templateCache.put('components/grouped-bar-chart/grouped-bar-chart.tpl.html','<div class="cd-grouped-bar-chart"><div ng-hide="vm.showData()"><div layout="row" layout-fill layout-align="center center" class="no-data"><span>There are no active tasks.</span></div></div><div ng-show="vm.showData()"><div ng-repeat="group in vm.groupDataKeys"><div layout="row" class="group-item"><div layout="column"><md-icon ng-hide="vm.expandField(group)" md-font-icon="fa fa-caret-right" ng-click="vm.setExpandedField(group)" ng-if="vm.options.subFields"></md-icon><md-icon ng-show="vm.expandField(group)" md-font-icon="fa fa-caret-down" ng-click="vm.setExpandedField(group, true)" ng-if="vm.options.subFields"></md-icon></div><div layout="column" flex><div layout="row" layout-align="space-around none"><div flex="60" layout-align="start center">{{group}}</div><div flex="20">Count: {{vm.groupData[group].length}}</div><div flex="20">{{vm.groupData[group].length*100/vm.totalKeys | number:0}}%</div></div></div></div><div layout="row" flex class="line-color"><div ng-style="{width:vm.groupData[group].length*100/vm.totalKeys + \'%\', \'background\': vm.getColor($index, group)}" class="red-line"></div></div><div class="data-container" ng-show="vm.expandField(group)"><div layout="column" ng-show="vm.expandField(group)" ng-if="vm.options.subFields"><div ng-repeat="el in vm.groupData[group]"><div ng-include="vm.options.extendedTemplate || \'lineChartSingleItemExpanded\'"></div></div></div></div></div><div layout="row" layout-align="end none" class="total">Total Count:{{vm.totalKeys}}</div></div></div><script type="text/ng-template" id="lineChartSingleItemExpanded"><div class="panel" layout="column" layout-align="center none">\n        <div layout="row" layout-align="space-between none" class="data-row">\n            <div ng-repeat="(field, displayText ) in vm.options.subFields">\n                <span class="bold-text">{{displayText}}</span>\n                <span>{{el[field]}}</span>\n            </div>\n        </div>\n    </div></script>');
+$templateCache.put('components/date-range-picker/date-range-picker.tpl.html','<div class="cd-date-range-picker" layout="column"><form name="vm.form" class="ng-cloak" layout="{{ ::vm.options.layout }}"><md-datepicker name="startDate" ng-model="vm.ngModel.$modelValue.startDate" ng-required="vm.shouldRequire(\'startDate\')" md-placeholder="{{ vm.startPlaceholder(vm.useDateRange) }}" md-min-date="vm.options.startDate.min || false" md-max-date="vm.ngModel.$modelValue.endDate || vm.options.startDate.max || false" ng-change="vm.dateChanged()" ng-model-options="vm.ngModelOptions" class="startDate" ng-class="{\n                        \'hide-all\' : vm.options.hideIcons == \'all\',\n                        \'hide-calendar\' : vm.options.hideIcons == \'calendar\',\n                        \'hide-triangle\' : vm.options.hideIcons == \'triangle\'\n                    }"></md-datepicker><md-datepicker name="endDate" ng-model="vm.ngModel.$modelValue.endDate" ng-required="vm.shouldRequire(\'endDate\')" ng-if="vm.useDateRange" md-placeholder="{{ vm.options.endDate.placeholder }}" md-min-date="vm.ngModel.$modelValue.startDate" md-max-date="vm.options.endDate.max" ng-change="vm.dateChanged()" ng-model-options="vm.ngModelOptions" class="endDate" ng-class="{\n                        \'hidden\': !vm.useDateRange,\n                        \'hide-all\' : vm.options.hideIcons == \'all\',\n                        \'hide-calendar\' : vm.options.hideIcons == \'calendar\',\n                        \'hide-triangle\' : vm.options.hideIcons == \'triangle\'\n                    }" ng-cloak></md-datepicker></form><span flex><a ng-if="(vm.options.toggleLink) ? vm.options.toggleLink.show : true" class="toggle-link" ng-class="{ \'float-right\':  vm.options.toggleLink.align == \'right\',\n                               \'float-left\':  vm.options.toggleLink.align == \'left\'}" ng-click="vm.toggleDateRange(vm.form)">{{ vm.getToggleDateRangeText(vm.useDateRange) }}</a></span><div class="error-div" ng-if="vm.form.$error && vm.form.$dirty"><span ng-if="vm.form.startDate.$error.required">{{ vm.useDateRange ? vm.options.errorMessages.startRequired : vm.options.errorMessages.required }} </span><span ng-if="vm.form.endDate.$error.required">{{ vm.options.errorMessages.endRequired }}</span></div></div>');
 $templateCache.put('components/sidebar-filter/sidebar-filter.tpl.html','<!--implemenation for user provided custom type/templates--><!--change naming to filter-tree, side-filter towards end--><div class="cd-sidebar-filter"><div ng-repeat="group in vm.filterGroups track by $index" ng-class="(vm.groupLevelClasses + (group.customClass ? \' \' + group.customClass : \'\') )"><div ng-if="!vm.options.isFlat"><md-button ng-click="vm.toggleExpand(group)" class="md-icon-button" aria-label="expand"><md-icon md-font-set="fa" md-font-icon="fa-chevron-right" ng-class="(group.isExpanded  !== false )? \'fa-chevron-down\': \'fa-chevron-right\'"></md-icon></md-button><span>{{ ::vm.processTitle(group, 0) }}</span></div><ul ng-show="group.isExpanded !== false" layout="column" ng-repeat="(filterName, filter) in vm.filters[group.key] track by filterName" ng-class="(vm.filterLevelClasses + (filter.customClass ? \' \' + filter.customClass : \'\'))" ng-class="{ cdFilterFlat : vm.options.isFlat}"><li><div><md-button ng-click="vm.toggleExpand(filter)" class="md-icon-button" aria-label="expand"><md-icon md-font-set="fa" md-font-icon="fa-chevron-right" ng-class="(filter.isExpanded  !== false )? \'fa-chevron-down\': \'fa-chevron-right\'"></md-icon></md-button><span>{{::vm.processTitle(filter, 1)}}</span><ul ng-show="filter.isExpanded !== false"><div ng-if="filter.type === \'checkbox\'" ng-include="\'cdCheckBoxFilter\'"></div><div ng-if="filter.type !== \'checkbox\'" ng-include="vm.customFields[filter.type].template"></div></ul></div></li></ul></div></div><script type="text/ng-template" id="cdCheckBoxFilter"><li ng-repeat="(optionName, option) in filter.options track by optionName" ng-class="(vm.optionLevelClasses + (option.customClass ? \' \' + option.customClass : \'\'))">\n        <md-checkbox ng-model="option.isSelected" ng-change="vm.changeFilter(filter, optionName, $index)" class="md-primary" ng-model-options="{debounce: 250}"\n            aria-label="{{::vm.processTitle(option, 2)}}">\n            <span>{{::vm.processTitle(option, 2)}}</span>\n        </md-checkbox>\n    </li></script>');}]);
-})(window, window.angular);;window.cedrusUI={version:{full: "0.4.0"}};
+})(window, window.angular);;window.cedrusUI={version:{full: "0.3.6"}};

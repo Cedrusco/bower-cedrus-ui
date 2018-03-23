@@ -2,7 +2,7 @@
  * Cedrus UI
  * https://github.com/cedrusco/cedrus-ui
  * @license Copyright Cedrus 2016
- * v0.4.0
+ * v0.3.6
  */
 .no-style {
   background-color: inherit;
@@ -155,8 +155,7 @@ cd-date-range-picker a {
   cursor: pointer; }
 
 cd-date-range-picker .error-div {
-  color: #924806;
-  text-align: right; }
+  color: #924806; }
   cd-date-range-picker .error-div.ng-enter,
   cd-date-range-picker .error-div span.ng-enter {
     -webkit-animation: 300ms enter;
